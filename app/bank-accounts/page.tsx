@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import Sidebar from '@/components/sidebar'
 import { Search, Bell } from '@/components/Icons'
 import styles from './accounts.module.css'
@@ -183,15 +184,15 @@ export default function AccountsPage() {
       <div className={styles.headerActions}>
         <Search size={22} />
         <Bell size={22} />
-        <div className={styles.avatarPlaceholder}>
+        <Link href="/profile" className={styles.avatarPlaceholder} aria-label="Profile" title="View profile">
           <Image
             src="/person-logo.png"
             alt="Profile"
             width={40}
             height={40}
-            style={{ objectFit: 'cover', borderRadius: '50%' }}
+            style={{ objectFit: 'cover', borderRadius: '12px' }}
           />
-        </div>
+        </Link>
       </div>
     </header>
   )

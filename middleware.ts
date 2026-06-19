@@ -116,6 +116,7 @@ export const config = {
     '/bank-transfer/:path*',
     '/e-statement/:path*',
     '/pay-bills/:path*',
-    '/smart-spend/:path*'
+    '/smart-spend/:path*',
+    '/profile/:path*'
   ]
 }

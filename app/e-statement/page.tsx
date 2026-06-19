@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import Sidebar from '@/components/sidebar'
 
 type Txn = {
@@ -16,7 +17,6 @@ type Account = {
   account_number: string
   account_name: string
   balance: string | number
-  full_name?: string
 }
 
 function formatDate(iso: string) {
@@ -38,14 +38,10 @@ export default function EStatementPage() {
     e.preventDefault()
     setError('')
     const acct = accountNumber.trim()
-    if (!acct) {
-      setError('Enter an account number.')
-      return
-    }
+    if (!acct) { setError('Enter an account number.'); return }
 
     setLoading(true)
     try {
-      // Resolve the account from the caller's own accounts.
       const accountsRes = await fetch('/api/accounts')
       const accountsData = await accountsRes.json()
       const match: Account | undefined = (accountsData.accounts || []).find(
@@ -59,9 +55,7 @@ export default function EStatementPage() {
       }
       setAccount(match)
 
-      const txRes = await fetch(
-        `/api/transactions?account=${encodeURIComponent(acct)}`
-      )
+      const txRes = await fetch(`/api/transactions?account=${encodeURIComponent(acct)}`)
       const txData = await txRes.json()
       if (txData.ok) {
         setTransactions(txData.transactions || [])
@@ -75,7 +69,6 @@ export default function EStatementPage() {
     }
   }
 
-  // Running balance is reconstructed forward from oldest to newest.
   const closing = account ? Number(account.balance) : 0
   let totalCredits = 0
   let totalDebits = 0
@@ -86,170 +79,215 @@ export default function EStatementPage() {
   const opening = closing - totalCredits + totalDebits
 
   return (
-    <div className="min-h-screen bg-bg-light font-geist p-0">
-      <div className="flex min-h-screen">
-        <Sidebar />
+    <div className="shell">
+      <Sidebar />
 
-        <main className="flex-1 p-12 text-black">
-          <div className="mb-10 flex items-center justify-between">
-            <h2 className="text-2xl font-semibold">E-Statement</h2>
-            <div className="flex items-center gap-3">
-              <button className="topbar-icon" aria-label="search">
-                <img src="/search.png" alt="search" />
-              </button>
-              <button className="topbar-icon" aria-label="notifications">
-                <img src="/notification.png" alt="notifications" />
-              </button>
-              <div className="size-12 overflow-hidden rounded-full border-2 border-gray-200">
-                <img
-                  src="/avatar.png"
-                  alt="avatar"
-                  className="size-full bg-white object-cover"
-                />
+      <main className="main">
+        <header className="topbar">
+          <h1 className="page-title">E-Statement</h1>
+          <div className="topbar-right">
+            <button className="icon-btn" aria-label="Search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.7"/><path d="M20 20l-3-3" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></svg>
+            </button>
+            <Link href="/profile" className="avatar-wrap" aria-label="Profile" title="View profile">
+              <img src="/person-logo.png" alt="profile" className="avatar" />
+            </Link>
+          </div>
+        </header>
+
+        {/* Search form */}
+        <form onSubmit={handleSubmit} className="search-card glass">
+          <label htmlFor="stmt-acct" className="search-label">Account Number</label>
+          <div className="search-row">
+            <input
+              id="stmt-acct"
+              inputMode="numeric"
+              value={accountNumber}
+              onChange={(e) => setAccountNumber(e.target.value)}
+              placeholder="Enter your account number"
+              className="glass-input search-input"
+            />
+            <button type="submit" disabled={loading} className="btn-accent btn-search">
+              {loading ? 'Loading…' : 'View'}
+            </button>
+          </div>
+          {error && <p className="err-msg">{error}</p>}
+        </form>
+
+        {/* Statement panel */}
+        {account && (
+          <div className="statement glass">
+            {/* Statement header */}
+            <div className="stmt-header">
+              <div className="stmt-logo-wrap">
+                <img src="/loginlogo.png" alt="Nova Bank" className="stmt-logo" />
+              </div>
+              <div>
+                <h2 className="stmt-bank">Nova Bank</h2>
+                <p className="stmt-tagline">Bank Statement</p>
               </div>
             </div>
-          </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="rounded-[32px] bg-white px-10 py-8 text-black shadow-[0_1px_3px_0_rgba(0,0,0,0.30),0_4px_8px_3px_rgba(0,0,0,0.15)]"
-          >
-            <label
-              htmlFor="statement-account-number"
-              className="grid items-end gap-6 text-xl md:grid-cols-[auto_1fr_auto]"
-            >
-              <span>Enter account number:</span>
-              <input
-                id="statement-account-number"
-                inputMode="numeric"
-                value={accountNumber}
-                onChange={(e) => setAccountNumber(e.target.value)}
-                className="min-w-0 border-0 border-b border-black bg-transparent px-2 py-1 text-xl text-black outline-none"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="rounded-full bg-[#9a5c97] px-6 py-2 text-base font-semibold text-white"
-              >
-                {loading ? 'Loading…' : 'View'}
-              </button>
-            </label>
-            {error && (
-              <p className="mt-3 text-sm font-semibold text-red-600">{error}</p>
-            )}
-          </form>
+            <div className="stmt-divider" />
 
-          <section
-            aria-label="Bank statement preview"
-            className="mt-6 min-h-[560px] bg-[#e7e7e7] px-7 py-9 text-black"
-          >
-            <div className="max-w-full">
-              <img
-                src="/loginlogo.png"
-                alt="Nova Bank"
-                className="size-[86px] rounded-full object-cover"
-              />
-
-              <div className="mt-5 text-sm leading-tight">
-                <h2 className="font-bold">Bank Statement</h2>
-                <dl>
-                  <div>
-                    <dt className="inline">Account Holder: </dt>
-                    <dd className="inline">{account?.account_name || ''}</dd>
-                  </div>
-                  <div>
-                    <dt className="inline">Account Number: </dt>
-                    <dd className="inline">{account?.account_number || ''}</dd>
-                  </div>
-                  <div>
-                    <dt className="inline">Branch: </dt>
-                    <dd className="inline">Nova Bank</dd>
-                  </div>
-                </dl>
+            {/* Account info */}
+            <div className="stmt-info-grid">
+              <div className="info-block">
+                <span className="info-label">Account Holder</span>
+                <span className="info-val">{account.account_name}</span>
               </div>
+              <div className="info-block">
+                <span className="info-label">Account Number</span>
+                <span className="info-val mono">{account.account_number}</span>
+              </div>
+              <div className="info-block">
+                <span className="info-label">Branch</span>
+                <span className="info-val">Nova Bank</span>
+              </div>
+            </div>
 
-              <div className="mt-9 text-sm">
-                <h3 className="font-bold">Account Summary</h3>
-                <table className="mt-5 w-full table-fixed border-collapse text-left">
+            {/* Summary cards */}
+            <div className="summary-grid">
+              {[
+                { label: 'Opening Balance', val: opening, color: 'rgba(180,200,225,0.10)', border: 'rgba(200,215,235,0.2)' },
+                { label: 'Total Credits', val: totalCredits, color: 'rgba(48,209,88,0.1)', border: 'rgba(48,209,88,0.2)' },
+                { label: 'Total Debits', val: totalDebits, color: 'rgba(255,69,58,0.1)', border: 'rgba(255,69,58,0.2)' },
+                { label: 'Closing Balance', val: closing, color: 'rgba(56,189,248,0.1)', border: 'rgba(56,189,248,0.2)' }
+              ].map(({ label, val, color, border }) => (
+                <div key={label} className="summary-card" style={{ background: color, border: `1px solid ${border}` }}>
+                  <span className="summary-label">{label}</span>
+                  <span className="summary-val">Rs. {val.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Transaction table */}
+            <div className="stmt-divider" />
+            <h3 className="txn-heading">Transaction History</h3>
+
+            {transactions.length === 0 ? (
+              <p className="empty">No transactions for this account.</p>
+            ) : (
+              <div className="table-wrap">
+                <table className="txn-table">
                   <thead>
                     <tr>
-                      <th className="pr-4 font-normal">Opening Balance</th>
-                      <th className="pr-4 font-normal">Total Credits</th>
-                      <th className="pr-4 font-normal">Total Debits</th>
-                      <th className="font-normal">Closing Balance</th>
+                      <th>Date</th>
+                      <th>Description</th>
+                      <th>Reference</th>
+                      <th>Debit</th>
+                      <th>Credit</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td className="pr-4">
-                        {account ? `Rs. ${opening.toLocaleString()}` : ''}
-                      </td>
-                      <td className="pr-4">
-                        {account ? `Rs. ${totalCredits.toLocaleString()}` : ''}
-                      </td>
-                      <td className="pr-4">
-                        {account ? `Rs. ${totalDebits.toLocaleString()}` : ''}
-                      </td>
-                      <td>
-                        {account ? `Rs. ${closing.toLocaleString()}` : ''}
-                      </td>
-                    </tr>
+                    {transactions.map((t) => {
+                      const debit = t.from_account === accountNumber.trim()
+                      return (
+                        <tr key={t.id}>
+                          <td>{formatDate(t.created_at)}</td>
+                          <td>{t.description || '—'}</td>
+                          <td className="mono">#{t.id}</td>
+                          <td className={debit ? 'debit' : ''}>
+                            {debit ? `Rs. ${Number(t.amount).toLocaleString()}` : ''}
+                          </td>
+                          <td className={!debit ? 'credit' : ''}>
+                            {!debit ? `Rs. ${Number(t.amount).toLocaleString()}` : ''}
+                          </td>
+                        </tr>
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
+            )}
+          </div>
+        )}
+      </main>
 
-              <div className="mt-10 border-t border-black pt-9">
-                <h3 className="text-sm font-bold">Transaction Details</h3>
+      <style jsx>{`
+        .shell { display: flex; min-height: 100vh; background: linear-gradient(135deg,#050505 0%,#0a0a0a 50%,#111114 100%); background-attachment: fixed }
+        .main { flex: 1; padding: 28px 32px 80px; overflow-y: auto; min-width: 0 }
 
-                <div className="mt-5 overflow-x-auto">
-                  <table className="w-full min-w-[760px] table-fixed border-collapse text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-black">
-                        <th className="w-[15%] pb-3 font-normal">Date</th>
-                        <th className="w-[30%] pb-3 font-normal">
-                          Description
-                        </th>
-                        <th className="w-[20%] pb-3 font-normal">Reference</th>
-                        <th className="w-[17%] pb-3 font-normal">Debit</th>
-                        <th className="w-[18%] pb-3 font-normal">Credit</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactions.length === 0 && (
-                        <tr>
-                          <td className="h-10 pt-3" colSpan={5}>
-                            {account ? 'No transactions for this account.' : ''}
-                          </td>
-                        </tr>
-                      )}
-                      {transactions.map((t) => {
-                        const debit = t.from_account === accountNumber.trim()
-                        return (
-                          <tr key={t.id} className="border-b border-black/20">
-                            <td className="py-2">{formatDate(t.created_at)}</td>
-                            <td className="py-2">{t.description || '—'}</td>
-                            <td className="py-2">#{t.id}</td>
-                            <td className="py-2">
-                              {debit
-                                ? `Rs. ${Number(t.amount).toLocaleString()}`
-                                : ''}
-                            </td>
-                            <td className="py-2">
-                              {!debit
-                                ? `Rs. ${Number(t.amount).toLocaleString()}`
-                                : ''}
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </section>
-        </main>
-      </div>
+        .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px }
+        .page-title { font-size: 26px; font-weight: 800; color: rgba(240,245,252,0.95); letter-spacing: -0.5px }
+        .topbar-right { display: flex; align-items: center; gap: 10px }
+        .icon-btn { width: 40px; height: 40px; border-radius: 12px; background: rgba(180,192,210,0.07); border: 1px solid rgba(180,192,210,0.16); color: rgba(180,195,215,0.65); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s }
+        .avatar-wrap { width: 40px; height: 40px; border-radius: 12px; overflow: hidden; border: 1.5px solid rgba(180,200,225,0.30) }
+        .avatar { width: 100%; height: 100%; object-fit: cover; display: block }
+
+        .search-card { border-radius: 20px; padding: 24px 28px; margin-bottom: 24px }
+        .search-label { font-size: 11px; font-weight: 600; color: rgba(180,195,215,0.38); letter-spacing: 0.6px; text-transform: uppercase; display: block; margin-bottom: 10px }
+        .search-row { display: flex; gap: 12px; align-items: center }
+        .search-input { flex: 1 }
+        .err-msg { font-size: 13px; color: #ff6b63; font-weight: 600; margin-top: 10px; background: rgba(255,69,58,0.08); border: 1px solid rgba(255,69,58,0.2); border-radius: 8px; padding: 8px 12px }
+
+        .btn-accent { background: linear-gradient(135deg,#c8d8e8 0%,#7a90a8 100%); border: none; border-radius: 999px; color: #0a0c10; font-weight: 700; cursor: pointer; transition: all 0.2s cubic-bezier(.4,0,.2,1); box-shadow: 0 0 24px rgba(180,200,225,0.25) }
+        .btn-accent:hover:not(:disabled) { filter: brightness(1.12); transform: translateY(-1px) }
+        .btn-accent:disabled { opacity: 0.5; cursor: not-allowed }
+        .btn-search { padding: 13px 24px; font-size: 14px; white-space: nowrap }
+
+        .statement { border-radius: 24px; padding: 32px }
+
+        .stmt-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px }
+        .stmt-logo-wrap { width: 52px; height: 52px; border-radius: 14px; overflow: hidden; border: 1px solid rgba(180,192,210,0.16) }
+        .stmt-logo { width: 100%; height: 100%; object-fit: cover }
+        .stmt-bank { font-size: 18px; font-weight: 800; color: rgba(240,245,252,0.95); margin-bottom: 2px }
+        .stmt-tagline { font-size: 12px; color: rgba(180,195,215,0.38) }
+
+        .stmt-divider { height: 1px; background: rgba(180,192,210,0.07); margin: 20px 0 }
+
+        .stmt-info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px }
+        .info-block { display: flex; flex-direction: column; gap: 4px }
+        .info-label { font-size: 11px; color: rgba(180,195,215,0.38); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px }
+        .info-val { font-size: 14px; font-weight: 600; color: rgba(240,245,252,0.95) }
+        .mono { font-family: monospace }
+
+        .summary-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 8px }
+        .summary-card { border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px }
+        .summary-label { font-size: 10px; font-weight: 600; color: rgba(180,195,215,0.38); text-transform: uppercase; letter-spacing: 0.5px }
+        .summary-val { font-size: 15px; font-weight: 700; color: rgba(240,245,252,0.95) }
+
+        .txn-heading { font-size: 15px; font-weight: 700; color: rgba(180,195,215,0.65); margin-bottom: 16px }
+
+        .empty { color: rgba(180,195,215,0.38); font-size: 14px; text-align: center; padding: 32px 0 }
+
+        .table-wrap { overflow-x: auto }
+
+        .txn-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 600px }
+
+        .txn-table th {
+          text-align: left;
+          padding: 0 14px 10px 0;
+          font-size: 11px;
+          font-weight: 600;
+          color: rgba(180,195,215,0.38);
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          border-bottom: 1px solid rgba(180,192,210,0.16);
+        }
+
+        .txn-table td {
+          padding: 12px 14px 12px 0;
+          color: rgba(180,195,215,0.65);
+          border-bottom: 1px solid rgba(180,192,210,0.07);
+        }
+
+        .txn-table tr:last-child td { border-bottom: none }
+        .txn-table tr:hover td { background: rgba(180,192,210,0.07) }
+
+        .debit { color: #ff6b63 !important; font-weight: 600 }
+        .credit { color: #30d158 !important; font-weight: 600 }
+
+        @media (max-width: 900px) {
+          .summary-grid { grid-template-columns: repeat(2,1fr) }
+          .stmt-info-grid { grid-template-columns: 1fr 1fr }
+        }
+
+        @media (max-width: 768px) {
+          .main { padding: 20px 16px 96px }
+          .summary-grid { grid-template-columns: 1fr 1fr }
+        }
+      `}</style>
     </div>
   )
 }

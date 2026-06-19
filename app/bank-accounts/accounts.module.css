@@ -1,51 +1,59 @@
-/* ===== GLOBAL STYLES ===== */
+/* ===== Layout ===== */
 .accountsPage {
-  width: 100vw;
-  min-height: 100vh;
-  background: var(--color-background);
   display: flex;
-  overflow: hidden;
-  font-family: system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #050505 0%, #0a0a0a 50%, #111114 100%);
+  background-attachment: fixed;
+  font-family: -apple-system, "SF Pro Text", Inter, system-ui, sans-serif;
 }
 
-/* ===== CONTENT ===== */
 .content {
   flex: 1;
-  padding: var(--spacing-xl) var(--spacing-2xl);
+  padding: 28px 32px 80px;
   overflow-y: auto;
   min-width: 0;
 }
 
-/* ===== HEADER ===== */
+/* ===== Header ===== */
 .contentHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--spacing-lg);
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .pageTitle {
-  font-size: var(--font-4xl);
-  font-weight: 700;
-  color: var(--color-black);
+  font-size: 26px;
+  font-weight: 800;
+  color: rgba(240, 245, 252, 0.95);
+  letter-spacing: -0.5px;
 }
 
 .headerActions {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xl);
+  gap: 10px;
+  color: rgba(180, 195, 215, 0.6);
 }
 
 .avatarPlaceholder {
-  width: var(--avatar-size);
-  height: var(--avatar-size);
-  border-radius: var(--radius-full);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   overflow: hidden;
-  background: var(--color-avatar-bg);
+  border: 1.5px solid rgba(180, 200, 225, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  text-decoration: none;
+}
+.avatarPlaceholder:hover {
+  border-color: rgba(200, 218, 238, 0.7);
+  box-shadow: 0 0 14px rgba(180, 200, 225, 0.3);
 }
 
 .avatarPlaceholder img {
@@ -54,88 +62,96 @@
   object-fit: cover;
 }
 
-/* ===== CARDS CONTAINER ===== */
+/* ===== Cards container ===== */
 .cardsContainer {
-  margin-top: var(--spacing-3xl);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-2xl);
+  gap: 16px;
+  max-width: 620px;
 }
 
-/* ===== ACCOUNT CARD ===== */
+/* ===== Account card ===== */
 .accountCard {
-  width: var(--card-width);
-  max-width: 100%;
-  height: var(--card-height);
-  background: var(--color-white);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 6px -1px var(--color-shadow);
-  border: 2px solid var(--color-card-border);
+  width: 100%;
+  background: linear-gradient(108deg, rgba(180,192,210,0.07) 0%, rgba(210,222,238,0.10) 45%, rgba(175,188,208,0.06) 100%);
+  border: 1px solid rgba(180, 192, 210, 0.16);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(220, 230, 245, 0.07);
+  border-radius: 20px;
   position: relative;
-  transition: var(--transition-default);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .accountCard:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 12px -1px var(--color-shadow);
+  border-color: rgba(200, 215, 235, 0.28);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6), 0 0 24px rgba(180, 200, 225, 0.1);
 }
 
 .iconEdit,
 .iconDelete {
   position: absolute;
-  font-size: var(--font-xl);
+  font-size: 16px;
   cursor: pointer;
-  transition: var(--transition-default);
-  padding: var(--spacing-xs);
-  border-radius: var(--radius-full);
+  transition: all 0.2s;
+  padding: 6px;
+  border-radius: 8px;
   line-height: 1;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .iconEdit {
-  left: var(--spacing-lg);
-  top: var(--spacing-lg);
-  color: var(--color-black);
+  top: 14px;
+  right: 50px;
+  background: rgba(180, 192, 210, 0.06);
+  border: 1px solid rgba(180, 192, 210, 0.1);
+  color: rgba(200, 215, 235, 0.55);
 }
 
 .iconEdit:hover {
-  background: var(--color-hover-bg);
-  transform: scale(1.1);
+  background: rgba(180, 200, 225, 0.13);
+  border-color: rgba(200, 215, 235, 0.28);
+  color: #c8daea;
 }
 
 .iconDelete {
-  right: var(--spacing-lg);
-  bottom: var(--spacing-lg);
-  color: var(--color-black);
+  top: 14px;
+  right: 14px;
+  background: rgba(180, 192, 210, 0.06);
+  border: 1px solid rgba(180, 192, 210, 0.1);
+  color: rgba(200, 215, 235, 0.45);
 }
 
 .iconDelete:hover {
-  background: var(--color-delete-hover);
-  transform: scale(1.1);
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.28);
+  color: #f87171;
 }
 
 .accountCardContent {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 100%;
-  padding: var(--spacing-lg);
-}
-
-.accountName {
-  font-weight: 700;
-  font-size: var(--font-xl);
-  margin: 0;
-  color: var(--color-black);
+  gap: 18px;
+  flex: 1;
 }
 
 .accountAvatar {
-  width: 100px;
-  height: 100px;
-  border-radius: var(--radius-full);
-  margin-top: var(--spacing-sm);
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
   overflow: hidden;
+  background: rgba(180, 200, 225, 0.10);
+  border: 1px solid rgba(180, 200, 225, 0.2);
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,342 +163,241 @@
   object-fit: cover;
 }
 
-.accountDetails {
-  font-size: var(--font-sm);
-  margin-top: var(--spacing-sm);
-  color: var(--color-black);
-  text-align: center;
-  line-height: 1.4;
+.accountName {
+  font-weight: 700;
+  font-size: 16px;
+  color: rgba(240, 245, 252, 0.9);
+  margin: 0 0 4px;
 }
 
-/* ===== ADD ACCOUNT CARD ===== */
+.accountDetails {
+  font-size: 12px;
+  color: rgba(180, 195, 215, 0.45);
+  line-height: 1.5;
+  font-family: monospace;
+}
+
+/* ===== Add account card ===== */
 .addAccountCard {
-  width: var(--card-width);
-  max-width: 100%;
-  height: 170px;
-  background: var(--color-white);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 6px -1px var(--color-shadow);
-  border: none;
+  width: 100%;
+  background: rgba(180, 192, 210, 0.04);
+  border: 1.5px dashed rgba(180, 192, 210, 0.15);
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: var(--transition-default);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 28px;
+  gap: 12px;
   font-family: inherit;
 }
 
 .addAccountCard:hover {
-  transform: scale(1.02);
-  box-shadow: 0 10px 15px -3px var(--color-shadow-hover);
+  background: rgba(180, 200, 225, 0.07);
+  border-color: rgba(200, 215, 235, 0.32);
+  transform: translateY(-2px);
 }
 
 .addAccountCard:active {
-  transform: scale(0.98);
+  transform: translateY(0);
 }
 
 .addAccountTitle {
-  font-weight: 600;
-  font-size: var(--font-xl);
-  margin-bottom: var(--spacing-xl);
-  color: var(--color-black);
+  font-weight: 700;
+  font-size: 15px;
+  color: rgba(200, 215, 235, 0.6);
 }
 
 .addAccountIcon {
-  font-size: var(--font-4xl);
+  font-size: 28px;
   font-weight: 300;
-  color: var(--color-black);
+  color: rgba(180, 200, 225, 0.65);
+  line-height: 1;
 }
 
-/* ===== FORM CONTAINER ===== */
+/* ===== Form ===== */
 .formContainer {
-  margin-top: var(--spacing-2xl);
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .formCard {
-  width: var(--form-width);
-  max-width: 100%;
-  background: var(--color-white);
-  border-radius: var(--radius-md);
-  box-shadow: 0 4px 6px -1px var(--color-shadow);
-  padding: var(--spacing-2xl);
+  width: 100%;
+  max-width: 560px;
+  background: linear-gradient(108deg, rgba(180,192,210,0.07) 0%, rgba(210,222,238,0.10) 45%, rgba(175,188,208,0.06) 100%);
+  border: 1px solid rgba(180, 192, 210, 0.15);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.55);
+  border-radius: 22px;
+  padding: 30px;
 }
 
 .formHeader {
-  margin-bottom: var(--spacing-2xl);
-  padding-bottom: var(--spacing-lg);
-  border-bottom: 2px solid var(--color-border-light);
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(180, 192, 210, 0.08);
 }
 
 .formTitle {
-  font-size: var(--font-3xl);
-  font-weight: 600;
-  color: var(--color-black);
+  font-size: 20px;
+  font-weight: 800;
+  color: rgba(240, 245, 252, 0.92);
   margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .formFields {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: 18px;
 }
 
-/* ===== FORM GROUP ===== */
+/* ===== Form group ===== */
 .formGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-  position: relative;
+  gap: 7px;
 }
 
 .formGroup label {
-  font-weight: 500;
-  font-size: var(--font-md);
-  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(180, 195, 215, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
 }
 
 .formGroup input {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--font-md);
-  transition: var(--transition-default);
+  background: rgba(180, 192, 210, 0.055);
+  border: 1px solid rgba(180, 192, 210, 0.14);
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 14px;
+  color: rgba(240, 245, 252, 0.9);
   outline: none;
-  font-family: inherit;
+  transition: all 0.2s;
   width: 100%;
-  color: var(--color-text);
+  font-family: inherit;
 }
 
 .formGroup input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+  border-color: rgba(200, 215, 235, 0.45);
+  background: rgba(200, 215, 235, 0.08);
+  box-shadow: 0 0 0 3px rgba(180, 200, 225, 0.12);
 }
 
 .formGroup input::placeholder {
-  color: var(--color-text-muted);
+  color: rgba(180, 195, 215, 0.3);
 }
 
 .inputDisabled {
-  background: var(--color-hover-bg);
-  color: var(--color-text-light);
+  opacity: 0.45;
   cursor: not-allowed;
 }
 
-.inputDisabled:focus {
-  border-color: var(--color-border);
-  box-shadow: none;
-}
-
-/* ===== VALIDATION STYLES ===== */
+/* ===== Validation ===== */
 .inputError {
-  border-color: var(--color-error) !important;
+  border-color: rgba(248, 113, 113, 0.6) !important;
+  background: rgba(248, 113, 113, 0.06) !important;
 }
 
 .inputError:focus {
-  border-color: var(--color-error) !important;
-  box-shadow: 0 0 0 3px var(--color-error-light) !important;
+  border-color: #f87171 !important;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.15) !important;
 }
 
 .fieldError {
-  color: var(--color-error);
-  font-size: var(--font-sm);
-  margin-top: var(--spacing-xs);
-  display: block;
-  animation: fadeIn 0.3s ease-in-out;
+  color: #f87171;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ===== FORM ACTIONS ===== */
+/* ===== Form actions ===== */
 .formActionsBottom {
   display: flex;
-  gap: var(--spacing-md);
-  margin-top: var(--spacing-xl);
-  padding-top: var(--spacing-xl);
-  border-top: 2px solid var(--color-border-light);
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(180, 192, 210, 0.08);
   justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.btnCancel,
-.btnAdd,
-.btnUpdate {
-  padding: 0.7rem var(--spacing-2xl);
-  border: none;
-  border-radius: var(--radius-lg);
-  font-weight: 600;
-  font-size: var(--font-md);
-  cursor: pointer;
-  transition: var(--transition-default);
-  min-width: 120px;
 }
 
 .btnCancel {
-  background: var(--color-border);
-  color: var(--color-text);
+  padding: 11px 24px;
+  border: 1px solid rgba(180, 192, 210, 0.14);
+  border-radius: 999px;
+  background: rgba(180, 192, 210, 0.055);
+  color: rgba(200, 215, 235, 0.65);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .btnCancel:hover {
-  background: #d1d5db;
-  transform: scale(1.02);
+  background: rgba(200, 215, 235, 0.1);
+  color: rgba(240, 245, 252, 0.9);
 }
 
 .btnAdd {
-  background: var(--color-primary);
-  color: var(--color-white);
+  padding: 11px 24px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #c8d8e8 0%, #7a90a8 100%);
+  color: #0a0c10;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(180, 200, 225, 0.25);
 }
 
 .btnAdd:hover {
-  background: var(--color-primary-hover);
-  transform: scale(1.02);
-  box-shadow: 0 4px 6px -1px rgba(69, 0, 67, 0.3);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
-.btnAdd:active {
-  transform: scale(0.98);
+.btnAdd:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btnUpdate {
-  background: var(--color-secondary);
-  color: var(--color-white);
+  padding: 11px 24px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #d4e4f4 0%, #6888a8 100%);
+  color: #0a0c10;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 0 20px rgba(180, 200, 225, 0.22);
 }
 
 .btnUpdate:hover {
-  background: var(--color-secondary-hover);
-  transform: scale(1.02);
-  box-shadow: 0 4px 6px -1px var(--color-secondary-light);
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
-.btnUpdate:active {
-  transform: scale(0.98);
+.btnUpdate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }
 
-/* ===== RESPONSIVE DESIGN ===== */
-
-/* Tablet */
+/* ===== Responsive ===== */
 @media (max-width: 768px) {
-  .accountsPage {
-    flex-direction: column;
-  }
-  
-  .content {
-    padding: var(--spacing-lg);
-  }
-  
-  .formCard {
-    padding: var(--spacing-xl);
-  }
-  
-  .formActionsBottom {
-    flex-direction: column;
-    gap: var(--spacing-sm);
-  }
-  
-  .btnCancel,
-  .btnAdd,
-  .btnUpdate {
-    width: 100%;
-    text-align: center;
-    padding: 0.6rem;
-    min-width: unset;
-  }
+  .content { padding: 20px 16px 96px }
+  .formActionsBottom { flex-direction: column }
+  .btnCancel, .btnAdd, .btnUpdate { width: 100%; text-align: center }
 }
 
-/* Mobile */
 @media (max-width: 480px) {
-  .content {
-    padding: var(--spacing-lg);
-  }
-  
-  .contentHeader {
-    gap: var(--spacing-md);
-  }
-  
-  .headerActions {
-    gap: var(--spacing-md);
-  }
-  
-  .accountCard {
-    height: var(--card-height);
-  }
-  
-  .addAccountCard {
-    height: 140px;
-  }
-  
-  .accountAvatar {
-    width: 60px;
-    height: 60px;
-  }
-  
-  .formCard {
-    padding: var(--spacing-lg);
-  }
-  
-  .formGroup input {
-    padding: 0.6rem 0.75rem;
-    font-size: var(--font-sm);
-  }
-  
-  .fieldError {
-    font-size: var(--font-xs);
-  }
-  
-  .iconEdit,
-  .iconDelete {
-    font-size: var(--font-lg);
-    padding: 2px;
-  }
-}
-
-/* Small Mobile */
-@media (max-width: 360px) {
-  .accountAvatar {
-    width: 50px;
-    height: 50px;
-  }
-  
-  .addAccountIcon {
-    font-size: var(--font-3xl);
-  }
-  
-  .formCard {
-    padding: var(--spacing-md);
-  }
-  
-  .formTitle {
-    font-size: var(--font-lg);
-  }
-  
-  .btnCancel,
-  .btnAdd,
-  .btnUpdate {
-    font-size: var(--font-sm);
-    padding: 0.5rem;
-  }
-}
-
-/* Large Screens */
-@media (min-width: 1200px) {
-  .cardsContainer {
-    gap: var(--spacing-3xl);
-  }
-  
-  .accountAvatar {
-    width: 120px;
-    height: 120px;
-  }
+  .accountCard { padding: 16px }
+  .accountAvatar { width: 44px; height: 44px; border-radius: 12px }
 }

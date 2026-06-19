@@ -1,57 +1,60 @@
 @import "tailwindcss";
 
+/* ─── Design Tokens — Silver Liquid Chrome ───────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* App background */
+  --grad-app: linear-gradient(135deg, #050505 0%, #0a0a0a 50%, #111114 100%);
+  --grad-sidebar: linear-gradient(180deg, rgba(28,28,32,0.92) 0%, rgba(8,8,10,0.97) 100%);
 
-  /* accounts page */
-  --color-primary: #450043;
-  --color-primary-hover: #5a0058;
-  --color-primary-light: rgba(69, 0, 67, 0.1);
-  --color-secondary: #2563eb;
-  --color-secondary-hover: #1d4ed8;
-  --color-secondary-light: rgba(37, 99, 235, 0.3);
-  --color-background: #f1f1f1;
-  --color-white: #ffffff;
-  --color-black: #000000;
-  --color-text: #374151;
-  --color-text-light: #6b7280;
-  --color-text-muted: #9ca3af;
-  --color-border: #e5e7eb;
-  --color-border-light: #f0f0f0;
-  --color-shadow: rgba(0, 0, 0, 0.1);
-  --color-shadow-hover: rgba(0, 0, 0, 0.2);
-  --color-success: #22c55e;
-  --color-error: #ef4444;
-  --color-error-light: rgba(239, 68, 68, 0.1);
-  --color-avatar-bg: #93c5fd;
-  --color-card-border: #3b82f6;
-  --color-hover-bg: #f0f0f0;
-  --color-delete-hover: #fee2e2;
-  --spacing-xs: 0.25rem;
-  --spacing-sm: 0.5rem;
-  --spacing-md: 0.75rem;
-  --spacing-lg: 1rem;
-  --spacing-xl: 1.5rem;
-  --spacing-2xl: 2rem;
-  --spacing-3xl: 2.5rem;
-  --radius-sm: 12px;
-  --radius-md: 18px;
-  --radius-lg: 25px;
-  --radius-full: 50%;
-  --font-xs: 10px;
-  --font-sm: 12px;
-  --font-md: 14px;
-  --font-lg: 16px;
-  --font-xl: 18px;
-  --font-2xl: 20px;
-  --font-3xl: 22px;
-  --font-4xl: 28px;
-  --transition-default: all 0.3s ease;
-  --card-width: 520px;
-  --card-height: 190px;
-  --form-width: 650px;
-  --avatar-size: 40px;
+  /* Glass surfaces — cold silver tint */
+  --glass-bg: rgba(180,190,205,0.055);
+  --glass-bg-strong: rgba(200,210,225,0.09);
+  --glass-border: rgba(180,192,210,0.16);
+  --glass-border-bright: rgba(210,220,235,0.28);
+  --glass-blur: blur(28px) saturate(180%);
+  --glass-shadow: 0 8px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(220,230,245,0.07);
+
+  /* Silver accent */
+  --accent: #b8c8dc;
+  --accent-2: #64748b;
+  --accent-soft: rgba(184,200,220,0.14);
+  --accent-glow: 0 0 28px rgba(180,200,225,0.28);
+  --grad-accent: linear-gradient(135deg, #d4dfe8 0%, #8fa3b8 50%, #c8d8e8 100%);
+  --grad-accent-btn: linear-gradient(135deg, #c8d8e8 0%, #7a90a8 100%);
+
+  /* Text — white → silver → steel */
+  --text-1: rgba(240,245,252,0.94);
+  --text-2: rgba(180,195,215,0.65);
+  --text-3: rgba(140,158,180,0.42);
+
+  /* Status */
+  --success: #34d399;
+  --success-soft: rgba(52,211,153,0.13);
+  --error: #f87171;
+  --error-soft: rgba(248,113,113,0.13);
+  --warning: #fbbf24;
+
+  /* Radii */
+  --r-xs: 8px;
+  --r-sm: 12px;
+  --r-md: 18px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+  --r-2xl: 44px;
+
+  /* Transitions */
+  --ease: cubic-bezier(.4,0,.2,1);
+  --transition: all 0.2s var(--ease);
+  --transition-slow: all 0.35s var(--ease);
+
+  /* Legacy compat */
+  --background: #080808;
+  --foreground: rgba(240,245,252,0.94);
+  --sidebar-purple: var(--grad-sidebar);
+  --sidebar-accent: var(--accent);
+  --card-bg: var(--glass-bg);
+  --bg-light: #080808;
+  --color-primary: var(--accent);
 }
 
 @theme inline {
@@ -61,174 +64,271 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-@media (max-width: 768px) {
-  :root {
-    --card-width: 100%;
-    --card-height: 160px;
-    --form-width: 100%;
-    --font-4xl: 22px;
-    --font-3xl: 20px;
-  }
-}
-
-@media (max-width: 480px) {
-  :root {
-    --card-height: 150px;
-    --avatar-size: 35px;
-    --font-4xl: 20px;
-    --font-xl: 16px;
-    --font-3xl: 18px;
-  }
-}
-
-@media (max-width: 360px) {
-  :root {
-    --card-height: 130px;
-    --font-xl: 14px;
-    --font-md: 12px;
-  }
-}
-
-@media (min-width: 1200px) {
-  :root {
-    --card-width: 580px;
-    --card-height: 200px;
-    --form-width: 700px;
-  }
-}
+/* ─── Base ───────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box }
+html { scroll-behavior: smooth }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-bai, 'Bai Jamjuree'), Arial, Helvetica, sans-serif;
+  background: var(--grad-app);
+  background-attachment: fixed;
+  min-height: 100vh;
+  color: var(--text-1);
+  font-family: -apple-system, "SF Pro Display", "SF Pro Text", Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-:root{
-  --sidebar-purple: rgba(58,6,59,0.83); /* #3A063B at 83% */
-  --sidebar-accent: #b886b6;
-  --card-bg: #ffffff;
-  --bg-light: #f3f2f2;
+/* ─── Liquid shimmer animation ───────────────────────── */
+@keyframes liquid-shimmer {
+  0%   { background-position: -200% center }
+  100% { background-position: 200% center }
 }
 
-.font-geist{font-family: var(--font-bai, 'Bai Jamjuree'), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
+/* ─── Glass Utilities ────────────────────────────────── */
+.glass {
+  background: linear-gradient(
+    108deg,
+    rgba(180,192,210,0.07) 0%,
+    rgba(210,222,238,0.10) 45%,
+    rgba(175,188,208,0.06) 100%
+  );
+  background-size: 200% auto;
+  animation: liquid-shimmer 8s linear infinite;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}
 
-.bg-bg-light{background-color:var(--bg-light)}
-.bg-sidebar-purple{background:var(--sidebar-purple);border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,0.12)}
-.text-sidebar-purple{color:var(--sidebar-purple)}
+.glass-strong {
+  background: linear-gradient(
+    108deg,
+    rgba(195,207,225,0.10) 0%,
+    rgba(220,232,248,0.14) 45%,
+    rgba(188,202,222,0.09) 100%
+  );
+  background-size: 200% auto;
+  animation: liquid-shimmer 8s linear infinite;
+  border: 1px solid var(--glass-border-bright);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+}
 
-.transfer-card{
-  background: var(--card-bg);
-  border-radius: 18px;
-  box-shadow: 0 22px 50px rgba(0,0,0,0.12);
-  max-width: 960px;
-  margin: 18px auto;
-  padding: 140px 48px 40px;
+@supports not (backdrop-filter: blur(1px)) {
+  .glass { background: rgba(18,22,28,0.92) }
+  .glass-strong { background: rgba(22,26,34,0.95) }
+}
+
+/* ─── Buttons ────────────────────────────────────────── */
+.btn-accent {
+  background: var(--grad-accent-btn);
+  border: none;
+  border-radius: 999px;
+  color: #0a0c10;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  box-shadow: var(--accent-glow);
+  transition: var(--transition);
+  cursor: pointer;
+}
+.btn-accent:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 0 36px rgba(200,220,240,0.35);
+}
+.btn-accent:active:not(:disabled) { transform: translateY(0); filter: brightness(0.95) }
+.btn-accent:disabled { opacity: 0.4; cursor: not-allowed }
+
+.btn-ghost {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  color: var(--text-1);
+  font-weight: 600;
+  transition: var(--transition);
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+}
+.btn-ghost:hover:not(:disabled) { background: var(--glass-bg-strong); border-color: var(--glass-border-bright) }
+
+/* ─── Inputs ─────────────────────────────────────────── */
+.glass-input {
+  background: rgba(180,192,210,0.05);
+  border: 1px solid rgba(180,192,210,0.14);
+  border-radius: var(--r-sm);
+  color: var(--text-1);
+  padding: 14px 18px;
+  font-size: 15px;
+  outline: none;
+  transition: var(--transition);
+  width: 100%;
+}
+.glass-input::placeholder { color: var(--text-3) }
+.glass-input:focus {
+  border-color: rgba(200,215,235,0.45);
+  background: rgba(200,215,235,0.08);
+  box-shadow: 0 0 0 3px rgba(180,200,225,0.12);
+}
+.glass-input:disabled { opacity: 0.4; cursor: not-allowed }
+
+.glass-select {
+  background: rgba(180,192,210,0.05);
+  border: 1px solid rgba(180,192,210,0.14);
+  border-radius: var(--r-sm);
+  color: var(--text-1);
+  padding: 14px 18px;
+  font-size: 15px;
+  outline: none;
+  transition: var(--transition);
+  width: 100%;
+  cursor: pointer;
+  appearance: none;
+}
+.glass-select option { background: #0f0f12; color: #e2e8f0 }
+.glass-select:focus { border-color: rgba(200,215,235,0.45); box-shadow: 0 0 0 3px rgba(180,200,225,0.12) }
+
+/* ─── Sidebar ────────────────────────────────────────── */
+.bg-sidebar-purple { background: var(--grad-sidebar) }
+.bg-bg-light { background: transparent }
+.font-geist { font-family: -apple-system, "SF Pro Text", Inter, system-ui, sans-serif }
+
+/* ─── Transfer card ──────────────────────────────────── */
+.transfer-card {
+  background: linear-gradient(108deg, rgba(180,192,210,0.07) 0%, rgba(210,222,238,0.10) 45%, rgba(175,188,208,0.06) 100%);
+  background-size: 200% auto;
+  animation: liquid-shimmer 8s linear infinite;
+  border: 1px solid var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-shadow);
+  border-radius: var(--r-lg);
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 40px 48px;
   position: relative;
-  max-height: none;
-  overflow: visible;
-  border: 1px solid rgba(0,0,0,0.04);
 }
 
-.underline-input{
-  width:100%;
-  border:0;
-  border-bottom:2px solid #cfcfcf;
-  padding:8px 4px;
-  outline:none;
-  font-size:16px;
+.underline-input {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(180,200,220,0.22);
+  padding: 10px 4px;
+  outline: none;
+  font-size: 15px;
+  color: var(--text-1);
+  transition: var(--transition);
 }
-.underline-input:focus{border-bottom-color:var(--sidebar-accent)}
+.underline-input::placeholder { color: var(--text-3) }
+.underline-input:focus { border-bottom-color: var(--accent) }
 
-.description-box{
-  width:100%;
-  border:1px solid #cfcfcf;
-  padding:8px;
-  border-radius:2px;
+.description-box {
+  width: 100%;
+  background: rgba(180,192,210,0.05);
+  border: 1px solid rgba(180,192,210,0.14);
+  border-radius: var(--r-xs);
+  padding: 10px 14px;
+  color: var(--text-1);
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+  transition: var(--transition);
+}
+.description-box:focus { border-color: rgba(200,215,235,0.45) }
+
+.next-btn {
+  background: var(--grad-accent-btn);
+  color: #0a0c10;
+  padding: 14px 40px;
+  border-radius: 999px;
+  font-weight: 700;
+  box-shadow: var(--accent-glow);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.next-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px) }
+.next-btn:disabled { opacity: 0.4; cursor: not-allowed }
+
+.transfer-btn {
+  width: 360px;
+  height: 64px;
+  border-radius: 999px;
+  background: var(--grad-accent-btn);
+  color: #0a0c10;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: 1px;
+  box-shadow: var(--accent-glow);
+  border: none;
+  display: block;
+  margin: 24px auto 0;
+  cursor: pointer;
+  transition: var(--transition);
+}
+.transfer-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px) }
+
+.success-btn {
+  width: 360px;
+  background: var(--grad-accent-btn);
+  height: 58px;
+  border-radius: 999px;
+  color: #0a0c10;
+  font-weight: 700;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--accent-glow);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
 }
 
-.next-btn{
-  background:var(--sidebar-accent);
-  color:white;
-  padding:18px 48px;
-  border-radius:28px;
-  font-weight:700;
-  box-shadow: 0 8px 18px rgba(90,39,64,0.2);
-  border:none;
-}
-
-.sidebar-item{padding:14px 18px;border-radius:12px;color:rgba(255,255,255,0.95);transition:all 200ms cubic-bezier(.2,.9,.2,1);display:flex;align-items:center;gap:14px;text-transform:uppercase;font-weight:600;letter-spacing:1px}
-.sidebar-item:hover{background:rgba(255,255,255,0.03);transform:translateY(-3px)}
-.sidebar-item .sidebar-icon{width:44px;height:44px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:transparent}
-.sidebar-item.active{background: linear-gradient(180deg, rgba(196,150,185,0.95), rgba(169,111,150,0.95));font-weight:900;color:#ffffff;box-shadow: 0 20px 40px rgba(58,6,59,0.35), inset 0 -6px 0 rgba(255,255,255,0.06);transform:translateY(-6px);padding-left:20px;padding-right:28px}
-.sidebar-item.active .sidebar-icon{background:rgba(255,255,255,0.06);box-shadow:0 10px 20px rgba(0,0,0,0.18);border-radius:12px}
-.sidebar-item.active svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.6}
-.icon-btn{background:rgba(255,255,255,0.04);border:none;color:white;font-size:18px;display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%}
-.icon-btn svg{width:20px;height:20px;display:block;fill:currentColor;stroke:currentColor}
-
-/* Ensure form labels and inputs inside the transfer card are dark/visible */
-.transfer-card label,
+.transfer-card label { color: var(--text-2) }
 .transfer-card input,
 .transfer-card select,
-.transfer-card textarea,
-.underline-input,
-.description-box{color:#000}
-
-/* Ensure all text inside transfer/confirm cards is black and highly visible */
-.transfer-card,
-.transfer-card * {
-  color: #000 !important;
-}
-
-/* Ensure transfer buttons remain white even when global card text is forced black */
+.transfer-card textarea { color: var(--text-1) }
 .transfer-card .next-btn,
-.transfer-card .transfer-btn {
-  color: #fff !important;
-  text-shadow: 0 2px 0 rgba(0,0,0,0.12);
+.transfer-card .transfer-btn { color: #0a0c10 !important }
+.transfer-card img { max-width: 360px; max-height: 280px; width: auto; height: auto }
+.transfer-card h3 { font-size: 22px; font-weight: 800; text-align: center; margin-bottom: 16px; color: var(--text-1) }
+
+.transfer-card .bg-white {
+  background: rgba(180,192,210,0.05);
+  border: 1px solid rgba(180,192,210,0.12);
+  border-radius: var(--r-md);
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 28px;
 }
 
+.success-check { display: flex; align-items: center; justify-content: center; position: absolute; top: -100px; left: 50%; transform: translateX(-50%); z-index: 40; width: 180px; height: 180px }
+.success-check svg { display: block; margin: 0 auto; width: 100%; height: 100% }
+.success-check.inside-check { position: relative; top: 0; left: 0; transform: none; margin: 16px auto 32px; width: 90px; height: 90px }
 
-/* Allow confirm illustration and inner panel to fully display */
-.transfer-card img{max-width:420px;max-height:340px;width:auto;height:auto}
+/* topbar icon */
+.topbar-icon { background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-1); display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; transition: var(--transition); cursor: pointer }
+.topbar-icon:hover { background: var(--glass-bg-strong); border-color: var(--glass-border-bright) }
+.topbar-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor }
+.topbar-icon img { width: 18px; height: 18px; object-fit: contain; display: block; filter: invert(1) opacity(0.6) }
 
-/* inner confirm panel styling (rounded, elevated) */
-.transfer-card .bg-white{background:#f3f5f6;border-radius:14px;box-shadow:0 20px 40px rgba(12,12,12,0.06);max-width:760px;margin:0 auto;padding:32px}
+/* sidebar item (legacy) */
+.sidebar-item { padding: 12px 16px; border-radius: var(--r-sm); color: var(--text-2); transition: var(--transition); display: flex; align-items: center; gap: 12px; font-weight: 600 }
+.sidebar-item:hover { background: var(--glass-bg); color: var(--text-1); transform: translateX(2px) }
+.sidebar-item.active { background: var(--accent-soft); border: 1px solid rgba(180,200,225,0.22); color: var(--text-1); box-shadow: var(--accent-glow) }
 
-.transfer-card h3{font-size:26px;font-weight:900;text-align:center;margin-bottom:18px}
+/* avatar link */
+a.avatar-wrap {
+  display: block;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+  text-decoration: none;
+}
+a.avatar-wrap:hover {
+  border-color: rgba(200,215,235,0.7) !important;
+  box-shadow: 0 0 16px rgba(180,200,225,0.3);
+}
 
-/* ensure headings below the overlapping graphic are visible */
-.transfer-card > .relative > h3{margin-top:6px}
-
-/* transfer button variant styled as large pill overlapping panel */
-.transfer-btn{width:420px;height:72px;border-radius:36px;background:linear-gradient(180deg,#b886b6,#9b5f90);color:#fff;font-weight:900;font-size:20px;letter-spacing:2px;box-shadow:0 22px 28px rgba(90,39,64,0.25);border:none;margin-top:24px;display:block;margin-left:auto;margin-right:auto}
-.transfer-btn:active{transform:translateY(1px)}
-
-/* slightly adjust generic next button */
-.next-btn{padding:14px 40px}
-
-/* Make main headings clearly visible */
-main h2{color:#000;font-size:28px;font-weight:800}
-
-/* success page specifics */
-.success-check{display:flex;align-items:center;justify-content:center;position:absolute;top:-120px;left:50%;transform:translateX(-50%);z-index:40;width:220px;height:220px}
-.success-check svg{display:block;margin:0 auto;width:100%;height:100%}
-.success-btn{width:420px;background:linear-gradient(180deg,#b886b6,#9b5f90);height:64px;border-radius:32px;color:#fff;font-weight:800;font-size:18px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 18px 28px rgba(90,39,64,0.22);border:none;margin-top:28px}
-.success-btn span{font-size:22px;margin-right:12px}
-
-/* Variant: place the alert/check inside the card flow (no overlap) */
-.success-check.inside-check{position:relative;top:0;left:0;transform:none;margin:20px auto 40px;width:100px;height:100px;z-index:10;display:block}
-.success-check.inside-check svg{width:100%;height:100%}
-
-/* Topbar icons (right side) */
-.topbar-icon{background:transparent;border:none;color:var(--foreground);display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px}
-.topbar-icon svg{width:22px;height:22px;fill:none;stroke:currentColor}
-.topbar-icon:hover{background:rgba(0,0,0,0.04)}
-
-/* Ensure PNG icons inside topbar buttons are sized and centered */
-.topbar-icon img{width:20px;height:20px;object-fit:contain;display:block}
+main h2 { color: var(--text-1); font-size: 24px; font-weight: 700 }

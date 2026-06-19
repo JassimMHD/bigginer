@@ -10,9 +10,9 @@ export async function POST(request: Request) {
     const result = await runStatement(
       `SELECT id, username, password, role, full_name, email
        FROM users
-       WHERE username = $1
+       WHERE username = $1 OR email = $1
        LIMIT 1`,
-      [username]
+      [username.toLowerCase()]
     )
 
     const row = result.rows[0]
