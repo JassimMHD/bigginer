@@ -22,6 +22,8 @@ export default function Home() {
     'form'
   )
   const [confirmation, setConfirmation] = useState<string | null>(null)
+  const [failureMessage, setFailureMessage] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
 
   function validate() {
     const e: Errors = {}
@@ -49,12 +51,35 @@ export default function Home() {
     }
   }
 
-  function handleTransfer(e: React.FormEvent) {
+  async function handleTransfer(e: React.FormEvent) {
     e.preventDefault()
-    // simulate transfer completion and show success page
-    const conf = String(Math.floor(10000000 + Math.random() * 89999999))
-    setConfirmation(conf)
-    setStep('success' as any)
+    if (submitting) return
+    setSubmitting(true)
+    try {
+      const res = await fetch('/api/transfer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          toAccount: accountNumber,
+          amount: Number(amount),
+          description
+        })
+      })
+      const data = await res.json().catch(() => ({}))
+
+      if (res.ok && data.ok) {
+        setConfirmation(String(data.transaction?.id ?? ''))
+        setStep('success')
+      } else {
+        setFailureMessage(data.message || 'Transfer failed. Please try again.')
+        setStep('failure')
+      }
+    } catch {
+      setFailureMessage('Network error. Please try again.')
+      setStep('failure')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -194,17 +219,19 @@ export default function Home() {
                 </div>
                 <div className="flex justify-center gap-4">
                   <button
-                    onClick={() => setStep('failure')}
+                    onClick={() => setStep('form')}
                     className="next-btn"
                     aria-label="back"
+                    disabled={submitting}
                   >
                     BACK
                   </button>
                   <button
                     onClick={handleTransfer}
                     className="next-btn transfer-btn"
+                    disabled={submitting}
                   >
-                    TRANSFER
+                    {submitting ? 'PROCESSING…' : 'TRANSFER'}
                   </button>
                 </div>
               </div>
@@ -257,6 +284,7 @@ export default function Home() {
                       setDescription('')
                       setErrors({})
                       setConfirmation(null)
+                      setFailureMessage(null)
                       setStep('form')
                     }}
                     className="transfer-btn success-btn"
@@ -303,9 +331,7 @@ export default function Home() {
                   Transaction Failed!
                 </h3>
                 <p className="text-center text-sm text-gray-500 mb-6">
-                  Insufficient Balance
-                  <br />
-                  Current Balance is: Rs.500
+                  {failureMessage || 'Transfer could not be completed.'}
                 </p>
 
                 <div className="flex justify-center">
@@ -318,6 +344,7 @@ export default function Home() {
                       setDescription('')
                       setErrors({})
                       setConfirmation(null)
+                      setFailureMessage(null)
                       setStep('form')
                     }}
                     className="transfer-btn success-btn"
