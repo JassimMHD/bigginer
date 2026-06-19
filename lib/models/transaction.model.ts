@@ -1,4 +1,5 @@
-import { runStatement, pool } from '@/lib/platform-db'
+import { runStatement } from '@/lib/platform-db'
+import type { PoolClient } from 'pg'
 
 export async function findByAccount(accountNumber: string) {
   const result = await runStatement(
@@ -18,7 +19,7 @@ export async function create(
   amount: number,
   description: string,
   createdBy: number,
-  client: Awaited<ReturnType<typeof pool.connect>>
+  client: PoolClient
 ) {
   const result = await client.query(
     `INSERT INTO transactions (from_account, to_account, amount, description, created_by)

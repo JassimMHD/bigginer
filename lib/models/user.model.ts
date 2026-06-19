@@ -1,4 +1,5 @@
 import { runStatement, pool, ensureDatabase } from '@/lib/platform-db'
+import type { PoolClient } from 'pg'
 
 export async function findByIdentifier(identifier: string) {
   const result = await runStatement(
@@ -24,7 +25,7 @@ export async function createUser(
   passwordHash: string,
   fullName: string,
   email: string,
-  client: Awaited<ReturnType<typeof pool.connect>>
+  client: PoolClient
 ) {
   const result = await client.query(
     `INSERT INTO users (username, password, role, full_name, email)
@@ -35,10 +36,7 @@ export async function createUser(
   return result.rows[0]
 }
 
-export async function emailExists(
-  username: string,
-  client: Awaited<ReturnType<typeof pool.connect>>
-) {
+export async function emailExists(username: string, client: PoolClient) {
   const result = await client.query(
     'SELECT 1 FROM users WHERE username = $1 LIMIT 1',
     [username]

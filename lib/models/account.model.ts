@@ -1,4 +1,5 @@
 import { runStatement, pool, ensureDatabase } from '@/lib/platform-db'
+import type { PoolClient } from 'pg'
 
 export async function findByUserId(userId: number) {
   const result = await runStatement(
@@ -23,7 +24,7 @@ export async function accountNumberExists(accountNumber: string) {
 
 export async function accountNumberExistsInTx(
   accountNumber: string,
-  client: Awaited<ReturnType<typeof pool.connect>>
+  client: PoolClient
 ) {
   const result = await client.query(
     'SELECT 1 FROM accounts WHERE account_number = $1 LIMIT 1',
@@ -60,7 +61,7 @@ export async function createInTx(
   accountNumber: string,
   accountName: string,
   pinHash: string,
-  client: Awaited<ReturnType<typeof pool.connect>>
+  client: PoolClient
 ) {
   await client.query(
     `INSERT INTO accounts (user_id, account_number, account_name, balance, pin)
@@ -69,7 +70,11 @@ export async function createInTx(
   )
 }
 
-export async function updateName(id: number, userId: number, accountName: string) {
+export async function updateName(
+  id: number,
+  userId: number,
+  accountName: string
+) {
   const result = await runStatement(
     `UPDATE accounts SET account_name = $1
      WHERE id = $2 AND user_id = $3
@@ -91,7 +96,7 @@ export async function debit(
   accountNumber: string,
   userId: number,
   amount: number,
-  client: Awaited<ReturnType<typeof pool.connect>>
+  client: PoolClient
 ) {
   const result = await client.query(
     `UPDATE accounts
@@ -105,7 +110,7 @@ export async function debit(
 export async function credit(
   accountNumber: string,
   amount: number,
-  client: Awaited<ReturnType<typeof pool.connect>>
+  client: PoolClient
 ) {
   const result = await client.query(
     `UPDATE accounts SET balance = balance + $1 WHERE account_number = $2`,
