@@ -84,16 +84,58 @@ const seedUsers = [
 ]
 
 const seedAccounts = [
-  { user_id: 1, account_number: '1000003423', account_name: 'Dilara Savings', balance: 100000.0, pin: '1234' },
-  { user_id: 1, account_number: '1000004876', account_name: 'Dilara Expenses', balance: 42000.0, pin: '1234' },
-  { user_id: 2, account_number: '2000006754', account_name: 'Kasun Current', balance: 9870.0, pin: '0000' },
-  { user_id: 3, account_number: '9999999999', account_name: 'Admin Vault', balance: 9999999.99, pin: '9999' }
+  {
+    user_id: 1,
+    account_number: '1000003423',
+    account_name: 'Dilara Savings',
+    balance: 100000.0,
+    pin: '1234'
+  },
+  {
+    user_id: 1,
+    account_number: '1000004876',
+    account_name: 'Dilara Expenses',
+    balance: 42000.0,
+    pin: '1234'
+  },
+  {
+    user_id: 2,
+    account_number: '2000006754',
+    account_name: 'Kasun Current',
+    balance: 9870.0,
+    pin: '0000'
+  },
+  {
+    user_id: 3,
+    account_number: '9999999999',
+    account_name: 'Admin Vault',
+    balance: 9999999.99,
+    pin: '9999'
+  }
 ]
 
 const seedTransactions = [
-  { from: '1000003423', to: '2000006754', amount: 4500.0, description: 'Lunch money', by: 1 },
-  { from: '1000004876', to: '9999999999', amount: 10000.0, description: 'Totally normal fee', by: 1 },
-  { from: '2000006754', to: '1000003423', amount: 9870.0, description: 'Refund maybe', by: 2 }
+  {
+    from: '1000003423',
+    to: '2000006754',
+    amount: 4500.0,
+    description: 'Lunch money',
+    by: 1
+  },
+  {
+    from: '1000004876',
+    to: '9999999999',
+    amount: 10000.0,
+    description: 'Totally normal fee',
+    by: 1
+  },
+  {
+    from: '2000006754',
+    to: '1000003423',
+    amount: 9870.0,
+    description: 'Refund maybe',
+    by: 2
+  }
 ]
 
 async function seedDatabase() {
@@ -102,7 +144,15 @@ async function seedDatabase() {
       `INSERT INTO users (id, username, password, role, full_name, nic, email)
        VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (id) DO NOTHING`,
-      [u.id, u.username, await hashPassword(u.password), u.role, u.full_name, u.nic, u.email]
+      [
+        u.id,
+        u.username,
+        await hashPassword(u.password),
+        u.role,
+        u.full_name,
+        u.nic,
+        u.email
+      ]
     )
   }
 
@@ -116,7 +166,13 @@ async function seedDatabase() {
       `INSERT INTO accounts (user_id, account_number, account_name, balance, pin)
        VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (account_number) DO NOTHING`,
-      [a.user_id, a.account_number, a.account_name, a.balance, await hashPassword(a.pin)]
+      [
+        a.user_id,
+        a.account_number,
+        a.account_name,
+        a.balance,
+        await hashPassword(a.pin)
+      ]
     )
   }
 

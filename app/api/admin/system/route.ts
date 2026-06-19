@@ -8,7 +8,10 @@ export async function GET(request: Request) {
       return Response.json({ ok: false, message: 'Forbidden' }, { status: 403 })
     }
 
-    console.log('[admin-access]', { userId: session.userId, endpoint: 'system' })
+    console.log('[admin-access]', {
+      userId: session.userId,
+      endpoint: 'system'
+    })
 
     const users = await runStatement(
       `SELECT id, username, role, full_name, email, created_at

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 
 // Minimal icon components to avoid external dependency
 type IconProps = { size?: number }
@@ -93,8 +93,43 @@ const HelpCircle = ({ size = 24 }: IconProps) => (
   </svg>
 )
 
+const LogOut = ({ size = 24 }: IconProps) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M16 17l5-5-5-5M21 12H9"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+)
+
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } catch {
+      // Ignore network errors — clear the client and head to login anyway.
+    }
+    router.push('/login')
+  }
 
   const menuItems = [
     { label: 'DASHBOARD', path: '/dashboard' },
@@ -133,6 +168,15 @@ export default function Sidebar() {
       <div className="sidebar-footer">
         <Settings size={24} />
         <HelpCircle size={24} />
+        <button
+          type="button"
+          className="logout-btn"
+          onClick={handleLogout}
+          aria-label="Log out"
+          title="Log out"
+        >
+          <LogOut size={24} />
+        </button>
       </div>
 
       <style jsx>{`
@@ -216,9 +260,24 @@ export default function Sidebar() {
 
         .sidebar-footer {
           display: flex;
+          align-items: center;
           gap: 1.5rem;
           padding: 1.5rem;
           color: white;
+        }
+
+        .logout-btn {
+          background: transparent;
+          border: none;
+          color: white;
+          cursor: pointer;
+          padding: 0;
+          display: inline-flex;
+          align-items: center;
+          transition: opacity 0.2s;
+        }
+        .logout-btn:hover {
+          opacity: 0.7;
         }
 
         @media (max-width: 768px) {

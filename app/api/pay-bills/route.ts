@@ -14,21 +14,21 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}))
-    const fromAccount = asText(body.fromAccount || body.from)
-    const toAccount = asText(body.toAccount || body.to)
-    const description = asText(body.description)
+    const fromAccount = asText(body.fromAccount).trim()
+    const biller = asText(body.biller).trim()
+    const billId = asText(body.billId).trim()
     const amount = Number(body.amount)
 
     // --- Validate ---------------------------------------------------------
-    if (!fromAccount || !toAccount) {
+    if (!fromAccount) {
       return Response.json(
-        { ok: false, message: 'Source and destination accounts are required.' },
+        { ok: false, message: 'Source account is required.' },
         { status: 400 }
       )
     }
-    if (fromAccount === toAccount) {
+    if (!biller) {
       return Response.json(
-        { ok: false, message: 'Cannot transfer to the same account.' },
+        { ok: false, message: 'Biller is required.' },
         { status: 400 }
       )
     }
@@ -38,7 +38,6 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
-    // Reject more than 2 decimal places.
     if (Math.round(amount * 100) !== amount * 100) {
       return Response.json(
         { ok: false, message: 'Amount can have at most 2 decimal places.' },
@@ -51,8 +50,8 @@ export async function POST(request: Request) {
     try {
       await client.query('BEGIN')
 
-      // Debit only if the source account belongs to the session user and has
-      // sufficient funds. rowCount === 0 means not owner or insufficient funds.
+      // Debit the bill amount only if the account is the session user's and
+      // has sufficient funds.
       const debit = await client.query(
         `UPDATE accounts
          SET balance = balance - $1
@@ -67,30 +66,19 @@ export async function POST(request: Request) {
         )
       }
 
-      const credit = await client.query(
-        `UPDATE accounts SET balance = balance + $1 WHERE account_number = $2`,
-        [amount, toAccount]
-      )
-      if (credit.rowCount === 0) {
-        await client.query('ROLLBACK')
-        return Response.json(
-          { ok: false, message: 'Destination account not found.' },
-          { status: 400 }
-        )
-      }
-
+      const description = billId ? `${biller} bill ${billId}` : `${biller} bill`
       const inserted = await client.query(
         `INSERT INTO transactions (from_account, to_account, amount, description, created_by)
          VALUES ($1, $2, $3, $4, $5)
          RETURNING id, from_account, to_account, amount, description, status, created_at`,
-        [fromAccount, toAccount, amount, description, session.userId]
+        [fromAccount, biller, amount, description, session.userId]
       )
 
       await client.query('COMMIT')
 
       return Response.json({
         ok: true,
-        message: 'Transfer accepted.',
+        message: 'Payment accepted.',
         transaction: inserted.rows[0]
       })
     } catch (err) {

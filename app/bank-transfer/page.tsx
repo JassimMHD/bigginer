@@ -1,10 +1,16 @@
 'use client'
 
-import { useState } from 'react'
-import Image from 'next/image'
+import { useEffect, useState } from 'react'
 import Sidebar from '@/components/sidebar'
 
+type Account = {
+  account_number: string
+  account_name: string
+  balance: string | number
+}
+
 type Errors = Partial<{
+  fromAccount: string
   amount: string
   accountNumber: string
   accountName: string
@@ -12,6 +18,8 @@ type Errors = Partial<{
 }>
 
 export default function Home() {
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [fromAccount, setFromAccount] = useState('')
   const [amount, setAmount] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
   const [accountName, setAccountName] = useState('')
@@ -25,8 +33,26 @@ export default function Home() {
   const [failureMessage, setFailureMessage] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  useEffect(() => {
+    let active = true
+    fetch('/api/accounts')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active || !data.ok) return
+        const list: Account[] = data.accounts || []
+        setAccounts(list)
+        if (list.length > 0) setFromAccount(list[0].account_number)
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [])
+
   function validate() {
     const e: Errors = {}
+    if (!fromAccount) e.fromAccount = 'Select a source account'
+
     if (!amount) e.amount = 'Amount is required'
     else if (Number(amount) <= 0 || isNaN(Number(amount)))
       e.amount = 'Enter a valid positive amount'
@@ -60,6 +86,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          fromAccount,
           toAccount: accountNumber,
           amount: Number(amount),
           description
@@ -109,6 +136,33 @@ export default function Home() {
           {step === 'form' ? (
             <form onSubmit={handleNext} className="transfer-card p-8">
               <div className="grid grid-cols-12 gap-y-6 gap-x-8 items-center">
+                <label className="col-span-3 text-gray-700">
+                  From Account :
+                </label>
+                <div className="col-span-9">
+                  <select
+                    aria-label="from account"
+                    value={fromAccount}
+                    onChange={(e) => setFromAccount(e.target.value)}
+                    className="underline-input bg-transparent"
+                  >
+                    {accounts.length === 0 && (
+                      <option value="">No accounts available</option>
+                    )}
+                    {accounts.map((a) => (
+                      <option key={a.account_number} value={a.account_number}>
+                        {a.account_name} ({a.account_number}) — Rs.{' '}
+                        {Number(a.balance).toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.fromAccount && (
+                    <div className="text-sm text-red-600 mt-1">
+                      {errors.fromAccount}
+                    </div>
+                  )}
+                </div>
+
                 <label className="col-span-3 text-gray-700">Amount :</label>
                 <div className="col-span-9">
                   <input

@@ -8,7 +8,10 @@ export async function GET(request: Request) {
     if (process.env.NODE_ENV !== 'development') {
       const session = getSession(request)
       if (!session || session.role !== 'admin') {
-        return Response.json({ ok: false, message: 'Forbidden' }, { status: 403 })
+        return Response.json(
+          { ok: false, message: 'Forbidden' },
+          { status: 403 }
+        )
       }
     }
 

@@ -71,7 +71,9 @@ function sessionExpiry(): number {
 }
 
 /** Verify a session token's signature and expiry. Returns null if invalid. */
-export function verifySession(token: string | undefined | null): Session | null {
+export function verifySession(
+  token: string | undefined | null
+): Session | null {
   if (!token) return null
   const dot = token.indexOf('.')
   if (dot < 0) return null
@@ -124,5 +126,17 @@ export function sessionCookie(token: string): string {
     'Secure',
     'SameSite=Lax',
     `Max-Age=${Math.floor(SESSION_TTL_MS / 1000)}`
+  ].join('; ')
+}
+
+/** Build a Set-Cookie header value that immediately clears the session. */
+export function clearSessionCookie(): string {
+  return [
+    `${SESSION_COOKIE}=`,
+    'Path=/',
+    'HttpOnly',
+    'Secure',
+    'SameSite=Lax',
+    'Max-Age=0'
   ].join('; ')
 }

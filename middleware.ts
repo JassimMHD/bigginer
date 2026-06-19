@@ -53,9 +53,7 @@ async function verifySession(
   if (!valid) return null
 
   try {
-    const parsed = JSON.parse(
-      new TextDecoder().decode(base64urlToBytes(body))
-    )
+    const parsed = JSON.parse(new TextDecoder().decode(base64urlToBytes(body)))
     if (
       typeof parsed.userId !== 'number' ||
       typeof parsed.role !== 'string' ||
@@ -110,6 +108,7 @@ export const config = {
     '/api/accounts/:path*',
     '/api/transactions/:path*',
     '/api/transfer/:path*',
+    '/api/pay-bills/:path*',
     '/api/search/:path*',
     '/api/admin/:path*',
     '/dashboard/:path*',

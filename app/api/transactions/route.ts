@@ -5,7 +5,10 @@ export async function GET(request: Request) {
   try {
     const session = getSession(request)
     if (!session) {
-      return Response.json({ ok: false, message: 'Unauthorized' }, { status: 401 })
+      return Response.json(
+        { ok: false, message: 'Unauthorized' },
+        { status: 401 }
+      )
     }
 
     const { searchParams } = new URL(request.url)

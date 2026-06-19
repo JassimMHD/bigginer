@@ -1,27 +1,84 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Sidebar from '../../components/sidebar'
 import { Bell, ChevronRight, Search } from '../../components/Icons'
 
-const transactions = [
-  {
-    date: 'Oct, 16 2025',
-    account: '......3423',
-    amount: '-Rs. 4500.00'
-  },
-  {
-    date: 'Oct, 16 2025',
-    account: '......4876',
-    amount: '-Rs. 10,000.00'
-  },
-  {
-    date: 'Oct, 16 2025',
-    account: '......6754',
-    amount: '-Rs. 9870.00'
+type Account = {
+  account_number: string
+  account_name: string
+  balance: string | number
+}
+
+type Txn = {
+  id: number
+  from_account: string
+  to_account: string
+  amount: string | number
+  created_at: string
+}
+
+function formatDate(iso: string) {
+  try {
+    return new Date(iso).toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric'
+    })
+  } catch {
+    return iso
   }
-]
+}
 
 export default function Dashboard() {
+  const [firstName, setFirstName] = useState('')
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [transactions, setTransactions] = useState<Txn[]>([])
+
+  useEffect(() => {
+    let active = true
+
+    fetch('/api/auth/me')
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && data.ok) {
+          setFirstName(String(data.user.full_name || '').split(' ')[0])
+        }
+      })
+      .catch(() => {})
+
+    fetch('/api/accounts')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!active || !data.ok) return
+        const list: Account[] = data.accounts || []
+        setAccounts(list)
+        const primary = list[0]?.account_number
+        if (primary) {
+          return fetch(
+            `/api/transactions?account=${encodeURIComponent(primary)}`
+          )
+            .then((res) => res.json())
+            .then((txData) => {
+              if (active && txData.ok) {
+                setTransactions((txData.transactions || []).slice(0, 5))
+              }
+            })
+        }
+      })
+      .catch(() => {})
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const totalBalance = accounts.reduce(
+    (sum, a) => sum + Number(a.balance || 0),
+    0
+  )
+  const primaryAccount = accounts[0]?.account_number || ''
+
   return (
     <main className="dashboard">
       <Sidebar />
@@ -40,10 +97,14 @@ export default function Dashboard() {
         {/* Top Section */}
         <div className="top-section">
           <div className="welcome-card">
-            <h2 className="welcome-title">Welcome back, Dilara!</h2>
+            <h2 className="welcome-title">
+              Welcome back{firstName ? `, ${firstName}` : ''}!
+            </h2>
             <div className="balance-card">
               <p className="balance-label">Current Balance</p>
-              <p className="balance-amount">Rs. 100, 000</p>
+              <p className="balance-amount">
+                Rs. {totalBalance.toLocaleString()}
+              </p>
               <ChevronRight className="balance-chevron" size={30} />
             </div>
             <div className="carousel-dots">
@@ -82,15 +143,29 @@ export default function Dashboard() {
         <div className="transactions-section">
           <h2 className="transactions-title">Recent Transactions</h2>
           <div className="transactions-card">
-            {transactions.map((t, index) => (
-              <div key={index} className="transaction-item">
-                <img src="/person-logo.png" alt="user" className="avatar" />
-                <span className="transaction-date">{t.date}</span>
-                <span className="transaction-account">{t.account}</span>
-                <span className="transaction-amount">{t.amount}</span>
-                <span className="transaction-status">Success</span>
-              </div>
-            ))}
+            {transactions.length === 0 && (
+              <p className="transaction-date">No recent transactions.</p>
+            )}
+            {transactions.map((t) => {
+              const outgoing = t.from_account === primaryAccount
+              const counterparty = outgoing ? t.to_account : t.from_account
+              const sign = outgoing ? '-' : '+'
+              return (
+                <div key={t.id} className="transaction-item">
+                  <img src="/person-logo.png" alt="user" className="avatar" />
+                  <span className="transaction-date">
+                    {formatDate(t.created_at)}
+                  </span>
+                  <span className="transaction-account">
+                    ......{String(counterparty).slice(-4)}
+                  </span>
+                  <span className="transaction-amount">
+                    {sign}Rs. {Number(t.amount).toLocaleString()}
+                  </span>
+                  <span className="transaction-status">Success</span>
+                </div>
+              )
+            })}
             <div className="view-all">
               View all
               <ChevronRight size={15} />

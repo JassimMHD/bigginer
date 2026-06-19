@@ -1,7 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import React, { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import Sidebar from '@/components/sidebar'
 import { Search, Bell } from '@/components/Icons'
@@ -9,238 +8,193 @@ import styles from './accounts.module.css'
 
 type Screen = 'list' | 'add' | 'edit'
 
+type Account = {
+  id: number
+  account_number: string
+  account_name: string
+  balance: string | number
+}
+
 export default function AccountsPage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-
-  // Screen state
   const [screen, setScreen] = useState<Screen>('list')
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [loading, setLoading] = useState(true)
+  const [banner, setBanner] = useState('')
 
-  // Check if we're in edit mode from URL
-  const isEditMode = searchParams.get('mode') === 'edit'
-  const accountNumberParam = searchParams.get('accountNumber') || ''
-  const nicknameParam = searchParams.get('nickname') || ''
-  const accountNameParam = searchParams.get('accountName') || ''
-  const emailParam = searchParams.get('email') || ''
-
-  // Form data state
+  // Add-form state
   const [formData, setFormData] = useState({
     accountNumber: '',
-    accountName: '',
-    email: '',
-    nickname: ''
+    accountName: ''
   })
-
-  // Edit nickname state
-  const [nickname, setNickname] = useState('')
-
-  // Validation errors state
   const [errors, setErrors] = useState({
     accountNumber: '',
-    accountName: '',
-    email: '',
-    nickname: ''
+    accountName: ''
   })
+  const [saving, setSaving] = useState(false)
 
-  // Load data if in edit mode
+  // Edit state
+  const [editing, setEditing] = useState<Account | null>(null)
+  const [nickname, setNickname] = useState('')
+
+  const loadAccounts = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/accounts')
+      const data = await res.json()
+      if (data.ok) setAccounts(data.accounts || [])
+    } catch {
+      // leave list empty on failure
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
-    if (isEditMode) {
-      setFormData({
-        accountNumber: accountNumberParam,
-        accountName: accountNameParam,
-        email: emailParam,
-        nickname: nicknameParam
-      })
-      setNickname(nicknameParam || accountNameParam)
-      setScreen('edit')
+    loadAccounts()
+  }, [loadAccounts])
+
+  // ===== VALIDATION =====
+  const validateAdd = () => {
+    const newErrors = { accountNumber: '', accountName: '' }
+    if (!/^\d{8,20}$/.test(formData.accountNumber.trim())) {
+      newErrors.accountNumber = 'Account number must be 8 to 20 digits'
     }
-  }, [
-    isEditMode,
-    accountNumberParam,
-    accountNameParam,
-    emailParam,
-    nicknameParam
-  ])
-
-  // ===== VALIDATION FUNCTIONS =====
-  const validateField = (name: string, value: string) => {
-    let error = ''
-
-    switch (name) {
-      case 'accountNumber':
-        if (!value.trim()) {
-          error = 'Account number is required'
-        } else if (!/^\d+$/.test(value)) {
-          error = 'Account number must contain only numbers'
-        } else if (value.length < 8 || value.length > 20) {
-          error = 'Account number must be between 8 and 20 digits'
-        }
-        break
-
-      case 'accountName':
-        if (!value.trim()) {
-          error = 'Account name is required'
-        } else if (value.trim().length < 2) {
-          error = 'Account name must be at least 2 characters'
-        } else if (!/^[a-zA-Z\s]+$/.test(value)) {
-          error = 'Account name must contain only letters and spaces'
-        }
-        break
-
-      case 'email':
-        if (!value.trim()) {
-          error = 'Email is required'
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-          error = 'Please enter a valid email address'
-        }
-        break
-
-      case 'nickname':
-        if (!value.trim()) {
-          error = 'Nickname is required'
-        } else if (value.trim().length < 2) {
-          error = 'Nickname must be at least 2 characters'
-        }
-        break
-
-      default:
-        break
+    if (formData.accountName.trim().length < 2) {
+      newErrors.accountName = 'Account name must be at least 2 characters'
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.accountName.trim())) {
+      newErrors.accountName =
+        'Account name must contain only letters and spaces'
     }
-
-    return error
-  }
-
-  const validateForm = () => {
-    const newErrors = {
-      accountNumber: validateField('accountNumber', formData.accountNumber),
-      accountName: validateField('accountName', formData.accountName),
-      email: validateField('email', formData.email),
-      nickname: validateField('nickname', formData.nickname)
-    }
-
     setErrors(newErrors)
-
-    // Return true if no errors
-    return !Object.values(newErrors).some((error) => error !== '')
+    return !newErrors.accountNumber && !newErrors.accountName
   }
 
-  // ===== RESET FORM FUNCTION =====
   const resetForm = () => {
-    setFormData({
-      accountNumber: '',
-      accountName: '',
-      email: '',
-      nickname: ''
-    })
-    setNickname('')
-    setErrors({
-      accountNumber: '',
-      accountName: '',
-      email: '',
-      nickname: ''
-    })
+    setFormData({ accountNumber: '', accountName: '' })
+    setErrors({ accountNumber: '', accountName: '' })
   }
 
-  // ===== NAVIGATION FUNCTIONS =====
+  // ===== NAVIGATION =====
   const goToList = () => {
     resetForm()
+    setEditing(null)
     setScreen('list')
-    router.push('/bank-accounts')
   }
-
   const goToAdd = () => {
     resetForm()
     setScreen('add')
-    router.push('/bank-accounts?mode=add')
   }
-
-  const goToEdit = () => {
+  const goToEdit = (account: Account) => {
+    setEditing(account)
+    setNickname(account.account_name)
     setScreen('edit')
-    router.push('/bank-accounts?mode=edit')
   }
 
-  // ===== FORM HANDLERS =====
+  // ===== HANDLERS =====
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value
-    }))
-
-    // Clear error for this field when user starts typing
+    setFormData((prev) => ({ ...prev, [name]: value }))
     if (errors[name as keyof typeof errors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: ''
-      }))
+      setErrors((prev) => ({ ...prev, [name]: '' }))
     }
   }
 
-  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    const error = validateField(name, value)
-    setErrors((prev) => ({
-      ...prev,
-      [name]: error
-    }))
-  }
-
-  const handleAddAccount = (e: React.FormEvent) => {
+  const handleAddAccount = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (!validateForm()) {
-      // Scroll to first error
-      const firstErrorField = document.querySelector(`.${styles.fieldError}`)
-      if (firstErrorField) {
-        firstErrorField.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    if (!validateAdd()) return
+    setSaving(true)
+    try {
+      const res = await fetch('/api/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accountNumber: formData.accountNumber.trim(),
+          accountName: formData.accountName.trim()
+        })
+      })
+      const data = await res.json()
+      if (res.ok && data.ok) {
+        setBanner('Account added successfully.')
+        await loadAccounts()
+        goToList()
+      } else {
+        setErrors((prev) => ({
+          ...prev,
+          accountNumber: data.message || 'Could not add account.'
+        }))
       }
-      return
+    } catch {
+      setErrors((prev) => ({ ...prev, accountNumber: 'Network error.' }))
+    } finally {
+      setSaving(false)
     }
-
-    console.log('Adding new account:', formData)
-    alert('Account added successfully!')
-    resetForm()
-    goToList()
   }
 
-  const handleUpdateAccount = (e: React.FormEvent) => {
+  const handleEditNickname = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    // Check if at least account number is filled
-    if (!formData.accountNumber.trim()) {
-      alert('Please enter an account number first')
-      return
-    }
-
-    // Navigate to edit mode with whatever data is filled
-    router.push(
-      `/bank-accounts?mode=edit&accountNumber=${formData.accountNumber}&accountName=${formData.accountName || ''}&email=${formData.email || ''}&nickname=${formData.nickname || ''}`
-    )
-  }
-
-  const handleEditNickname = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!nickname.trim()) {
-      alert('Please enter a nickname')
-      return
-    }
-
+    if (!editing) return
     if (nickname.trim().length < 2) {
-      alert('Nickname must be at least 2 characters')
+      setBanner('Nickname must be at least 2 characters.')
       return
     }
-
-    console.log('Updating nickname to:', nickname)
-    alert(`Nickname updated to: ${nickname}`)
-    resetForm()
-    goToList()
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/accounts/${editing.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accountName: nickname.trim() })
+      })
+      const data = await res.json()
+      if (res.ok && data.ok) {
+        setBanner('Account updated.')
+        await loadAccounts()
+        goToList()
+      } else {
+        setBanner(data.message || 'Could not update account.')
+      }
+    } catch {
+      setBanner('Network error.')
+    } finally {
+      setSaving(false)
+    }
   }
 
-  const handleCancel = () => {
-    resetForm()
-    goToList()
+  const handleDelete = async (account: Account) => {
+    if (!confirm(`Delete account ${account.account_number}?`)) return
+    try {
+      const res = await fetch(`/api/accounts/${account.id}`, {
+        method: 'DELETE'
+      })
+      const data = await res.json()
+      if (res.ok && data.ok) {
+        setBanner('Account deleted.')
+        await loadAccounts()
+      } else {
+        setBanner(data.message || 'Could not delete account.')
+      }
+    } catch {
+      setBanner('Network error.')
+    }
   }
+
+  const Header = () => (
+    <header className={styles.contentHeader}>
+      <h1 className={styles.pageTitle}>Accounts</h1>
+      <div className={styles.headerActions}>
+        <Search size={22} />
+        <Bell size={22} />
+        <div className={styles.avatarPlaceholder}>
+          <Image
+            src="/person-logo.png"
+            alt="Profile"
+            width={40}
+            height={40}
+            style={{ objectFit: 'cover', borderRadius: '50%' }}
+          />
+        </div>
+      </div>
+    </header>
+  )
 
   return (
     <main className={styles.accountsPage}>
@@ -249,46 +203,48 @@ export default function AccountsPage() {
         {/* ===== LIST SCREEN ===== */}
         {screen === 'list' && (
           <>
-            <header className={styles.contentHeader}>
-              <h1 className={styles.pageTitle}>Accounts</h1>
-              <div className={styles.headerActions}>
-                <Search size={22} />
-                <Bell size={22} />
-                <div className={styles.avatarPlaceholder}>
-                  <Image
-                    src="/person-logo.png"
-                    alt="Profile"
-                    width={40}
-                    height={40}
-                    style={{ objectFit: 'cover', borderRadius: '50%' }}
-                  />
-                </div>
-              </div>
-            </header>
+            <Header />
+            {banner && <p className={styles.fieldError}>{banner}</p>}
 
             <div className={styles.cardsContainer}>
-              <div className={styles.accountCard}>
-                <div className={styles.iconEdit} onClick={goToEdit}>
-                  ✏️
-                </div>
-                <div className={styles.iconDelete}>🗑️</div>
-                <div className={styles.accountCardContent}>
-                  <h2 className={styles.accountName}>Anura</h2>
-                  <div className={styles.accountAvatar}>
-                    <Image
-                      src="/account-logo.png"
-                      alt="profile"
-                      width={100}
-                      height={100}
-                      style={{ objectFit: 'cover', borderRadius: '50%' }}
-                    />
+              {loading && <p>Loading accounts…</p>}
+              {!loading && accounts.length === 0 && (
+                <p>No accounts yet. Add one below.</p>
+              )}
+              {accounts.map((account) => (
+                <div className={styles.accountCard} key={account.id}>
+                  <div
+                    className={styles.iconEdit}
+                    onClick={() => goToEdit(account)}
+                  >
+                    ✏️
                   </div>
-                  <p className={styles.accountDetails}>
-                    Nova Bank <br />
-                    Colombo 05
-                  </p>
+                  <div
+                    className={styles.iconDelete}
+                    onClick={() => handleDelete(account)}
+                  >
+                    🗑️
+                  </div>
+                  <div className={styles.accountCardContent}>
+                    <h2 className={styles.accountName}>
+                      {account.account_name}
+                    </h2>
+                    <div className={styles.accountAvatar}>
+                      <Image
+                        src="/account-logo.png"
+                        alt="profile"
+                        width={100}
+                        height={100}
+                        style={{ objectFit: 'cover', borderRadius: '50%' }}
+                      />
+                    </div>
+                    <p className={styles.accountDetails}>
+                      {account.account_number} <br />
+                      Rs. {Number(account.balance).toLocaleString()}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ))}
 
               <button className={styles.addAccountCard} onClick={goToAdd}>
                 <h2 className={styles.addAccountTitle}>Add a Bank Account</h2>
@@ -301,30 +257,14 @@ export default function AccountsPage() {
         {/* ===== ADD SCREEN ===== */}
         {screen === 'add' && (
           <>
-            <header className={styles.contentHeader}>
-              <h1 className={styles.pageTitle}>Accounts</h1>
-              <div className={styles.headerActions}>
-                <Search size={22} />
-                <Bell size={22} />
-                <div className={styles.avatarPlaceholder}>
-                  <Image
-                    src="/person-logo.png"
-                    alt="Profile"
-                    width={40}
-                    height={40}
-                    style={{ objectFit: 'cover', borderRadius: '50%' }}
-                  />
-                </div>
-              </div>
-            </header>
-
+            <Header />
             <div className={styles.formContainer}>
               <div className={styles.formCard}>
                 <div className={styles.formHeader}>
                   <h2 className={styles.formTitle}>Add Another Bank Account</h2>
                 </div>
 
-                <form className={styles.formFields}>
+                <form className={styles.formFields} onSubmit={handleAddAccount}>
                   <div className={styles.formGroup}>
                     <label htmlFor="accountNumber">Bank Account Number:</label>
                     <input
@@ -333,10 +273,8 @@ export default function AccountsPage() {
                       name="accountNumber"
                       value={formData.accountNumber}
                       onChange={handleChange}
-                      onBlur={handleBlur}
                       placeholder="Enter account number"
                       className={errors.accountNumber ? styles.inputError : ''}
-                      required
                     />
                     {errors.accountNumber && (
                       <span className={styles.fieldError}>
@@ -353,10 +291,8 @@ export default function AccountsPage() {
                       name="accountName"
                       value={formData.accountName}
                       onChange={handleChange}
-                      onBlur={handleBlur}
                       placeholder="Enter account holder name"
                       className={errors.accountName ? styles.inputError : ''}
-                      required
                     />
                     {errors.accountName && (
                       <span className={styles.fieldError}>
@@ -365,65 +301,20 @@ export default function AccountsPage() {
                     )}
                   </div>
 
-                  <div className={styles.formGroup}>
-                    <label htmlFor="email">Email:</label>
-                    <input
-                      type="email"
-                      id="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      placeholder="Enter email address"
-                      className={errors.email ? styles.inputError : ''}
-                      required
-                    />
-                    {errors.email && (
-                      <span className={styles.fieldError}>{errors.email}</span>
-                    )}
-                  </div>
-
-                  <div className={styles.formGroup}>
-                    <label htmlFor="nickname">Nickname:</label>
-                    <input
-                      type="text"
-                      id="nickname"
-                      name="nickname"
-                      value={formData.nickname}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
-                      placeholder="Enter a nickname"
-                      className={errors.nickname ? styles.inputError : ''}
-                      required
-                    />
-                    {errors.nickname && (
-                      <span className={styles.fieldError}>
-                        {errors.nickname}
-                      </span>
-                    )}
-                  </div>
-
                   <div className={styles.formActionsBottom}>
                     <button
                       type="button"
                       className={styles.btnCancel}
-                      onClick={handleCancel}
+                      onClick={goToList}
                     >
                       Cancel
                     </button>
                     <button
-                      type="button"
+                      type="submit"
                       className={styles.btnAdd}
-                      onClick={handleAddAccount}
+                      disabled={saving}
                     >
-                      Add Account
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.btnUpdate}
-                      onClick={handleUpdateAccount}
-                    >
-                      Update Account
+                      {saving ? 'Adding…' : 'Add Account'}
                     </button>
                   </div>
                 </form>
@@ -433,29 +324,13 @@ export default function AccountsPage() {
         )}
 
         {/* ===== EDIT SCREEN ===== */}
-        {screen === 'edit' && (
+        {screen === 'edit' && editing && (
           <>
-            <header className={styles.contentHeader}>
-              <h1 className={styles.pageTitle}>Accounts</h1>
-              <div className={styles.headerActions}>
-                <Search size={22} />
-                <Bell size={22} />
-                <div className={styles.avatarPlaceholder}>
-                  <Image
-                    src="/person-logo.png"
-                    alt="Profile"
-                    width={40}
-                    height={40}
-                    style={{ objectFit: 'cover', borderRadius: '50%' }}
-                  />
-                </div>
-              </div>
-            </header>
-
+            <Header />
             <div className={styles.formContainer}>
               <div className={styles.formCard}>
                 <div className={styles.formHeader}>
-                  <h2 className={styles.formTitle}>Edit the nickname</h2>
+                  <h2 className={styles.formTitle}>Edit the account name</h2>
                 </div>
 
                 <form
@@ -463,24 +338,26 @@ export default function AccountsPage() {
                   className={styles.formFields}
                 >
                   <div className={styles.formGroup}>
-                    <label htmlFor="accountNumber">Bank Account Number:</label>
+                    <label htmlFor="editAccountNumber">
+                      Bank Account Number:
+                    </label>
                     <input
                       type="text"
-                      id="accountNumber"
-                      value={formData.accountNumber || '1234567890'}
+                      id="editAccountNumber"
+                      value={editing.account_number}
                       disabled
                       className={styles.inputDisabled}
                     />
                   </div>
 
                   <div className={styles.formGroup}>
-                    <label htmlFor="nickname">Nickname:</label>
+                    <label htmlFor="nickname">Account Name:</label>
                     <input
                       type="text"
                       id="nickname"
                       value={nickname}
                       onChange={(e) => setNickname(e.target.value)}
-                      placeholder="Enter new nickname"
+                      placeholder="Enter new name"
                       required
                     />
                   </div>
@@ -489,12 +366,16 @@ export default function AccountsPage() {
                     <button
                       type="button"
                       className={styles.btnCancel}
-                      onClick={handleCancel}
+                      onClick={goToList}
                     >
                       Cancel
                     </button>
-                    <button type="submit" className={styles.btnUpdate}>
-                      UPDATE
+                    <button
+                      type="submit"
+                      className={styles.btnUpdate}
+                      disabled={saving}
+                    >
+                      {saving ? 'Saving…' : 'UPDATE'}
                     </button>
                   </div>
                 </form>
