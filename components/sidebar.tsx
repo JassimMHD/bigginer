@@ -51,6 +51,12 @@ const FileText = ({ size = 18 }: IconProps) => (
   </svg>
 )
 
+const Activity = ({ size = 18 }: IconProps) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
 const Settings = ({ size = 22 }: IconProps) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
@@ -79,7 +85,8 @@ const menuItems = [
   { label: 'Bank Transfer', path: '/bank-transfer', Icon: ArrowLeftRight },
   { label: 'Pay Bills', path: '/pay-bills', Icon: Receipt },
   { label: 'Smart Spend', path: '/smart-spend', Icon: TrendingUp },
-  { label: 'E-Statement', path: '/e-statement', Icon: FileText }
+  { label: 'E-Statement', path: '/e-statement', Icon: FileText },
+  { label: 'Activity', path: '/activity', Icon: Activity }
 ]
 
 export default function Sidebar() {
@@ -159,6 +166,10 @@ export default function Sidebar() {
             </Link>
           )
         })}
+        <Link href="/activity" className={`mobile-nav-item ${pathname === '/activity' ? 'active' : ''}`}>
+          <Activity size={20} />
+          <span>Activity</span>
+        </Link>
         <Link href="/profile" className={`mobile-nav-item ${pathname === '/profile' ? 'active' : ''}`}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
             <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.6"/>

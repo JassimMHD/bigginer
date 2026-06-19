@@ -49,6 +49,18 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   payload JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  event_type TEXT NOT NULL,
+  description TEXT,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ip_address TEXT,
+  user_agent TEXT,
+  device_type TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 `
 
 // Default credentials for the seeded demo users. Passwords/PINs are hashed

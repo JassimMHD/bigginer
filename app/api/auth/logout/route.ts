@@ -1,12 +1,4 @@
-import { serviceFailure } from '@/lib/platform-db'
-import { clearSessionCookie } from '@/lib/auth'
+import type { NextRequest } from 'next/server'
+import { logout } from '@/lib/controllers/auth.controller'
 
-export async function POST() {
-  try {
-    const headers = new Headers()
-    headers.append('set-cookie', clearSessionCookie())
-    return Response.json({ ok: true, message: 'Signed out.' }, { headers })
-  } catch (reason) {
-    return serviceFailure(reason)
-  }
-}
+export const POST = (request: NextRequest) => logout(request)

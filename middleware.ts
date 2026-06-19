@@ -111,6 +111,8 @@ export const config = {
     '/api/pay-bills/:path*',
     '/api/search/:path*',
     '/api/admin/:path*',
+    '/api/activity/:path*',
+    '/activity/:path*',
     '/dashboard/:path*',
     '/bank-accounts/:path*',
     '/bank-transfer/:path*',
