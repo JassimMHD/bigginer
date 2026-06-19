@@ -1,15 +1,15 @@
 import { Pool } from 'pg'
+import { hashPassword } from './auth'
 
-const connectionString =
-  process.env.DATABASE_URL ||
-  'postgresql://postgres:supersecurepassword@localhost:5432/htn26db'
+const connectionString = process.env.DATABASE_URL
+if (!connectionString) {
+  throw new Error('DATABASE_URL is required')
+}
 
 export const pool = new Pool({
   connectionString,
-  max: 3
+  max: 10
 })
-
-let booted = false
 
 const schema = `
 CREATE TABLE IF NOT EXISTS users (
@@ -51,38 +51,108 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 );
 `
 
-const seed = `
-INSERT INTO users (id, username, password, role, full_name, nic, email) VALUES
-  (1, 'dilara', 'password123', 'customer', 'Dilara Perera', '200112345678', 'dilara@example.test'),
-  (2, 'kasun', 'kasun', 'customer', 'Kasun Wickramanayake', '199812345678', 'kasun@example.test'),
-  (3, 'admin', 'admin', 'admin', 'Platform Administrator', '000000000000', 'root@example.test')
-ON CONFLICT (id) DO NOTHING;
+// Default credentials for the seeded demo users. Passwords/PINs are hashed
+// before insertion; these plaintext values exist only to bootstrap local demos.
+const seedUsers = [
+  {
+    id: 1,
+    username: 'dilara',
+    password: 'password123',
+    role: 'customer',
+    full_name: 'Dilara Perera',
+    nic: '200112345678',
+    email: 'dilara@example.test'
+  },
+  {
+    id: 2,
+    username: 'kasun',
+    password: 'kasun',
+    role: 'customer',
+    full_name: 'Kasun Wickramanayake',
+    nic: '199812345678',
+    email: 'kasun@example.test'
+  },
+  {
+    id: 3,
+    username: 'admin',
+    password: 'admin',
+    role: 'admin',
+    full_name: 'Platform Administrator',
+    nic: '000000000000',
+    email: 'root@example.test'
+  }
+]
 
-INSERT INTO accounts (user_id, account_number, account_name, balance, pin) VALUES
-  (1, '1000003423', 'Dilara Savings', 100000.00, '1234'),
-  (1, '1000004876', 'Dilara Expenses', 42000.00, '1234'),
-  (2, '2000006754', 'Kasun Current', 9870.00, '0000'),
-  (3, '9999999999', 'Admin Vault', 9999999.99, '9999')
-ON CONFLICT (account_number) DO NOTHING;
+const seedAccounts = [
+  { user_id: 1, account_number: '1000003423', account_name: 'Dilara Savings', balance: 100000.0, pin: '1234' },
+  { user_id: 1, account_number: '1000004876', account_name: 'Dilara Expenses', balance: 42000.0, pin: '1234' },
+  { user_id: 2, account_number: '2000006754', account_name: 'Kasun Current', balance: 9870.0, pin: '0000' },
+  { user_id: 3, account_number: '9999999999', account_name: 'Admin Vault', balance: 9999999.99, pin: '9999' }
+]
 
-INSERT INTO transactions (from_account, to_account, amount, description, created_by) VALUES
-  ('1000003423', '2000006754', 4500.00, 'Lunch money', 1),
-  ('1000004876', '9999999999', 10000.00, 'Totally normal fee', 1),
-  ('2000006754', '1000003423', 9870.00, 'Refund maybe', 2)
-ON CONFLICT DO NOTHING;
-`
+const seedTransactions = [
+  { from: '1000003423', to: '2000006754', amount: 4500.0, description: 'Lunch money', by: 1 },
+  { from: '1000004876', to: '9999999999', amount: 10000.0, description: 'Totally normal fee', by: 1 },
+  { from: '2000006754', to: '1000003423', amount: 9870.0, description: 'Refund maybe', by: 2 }
+]
 
-export async function runStatement(sql: string) {
-  await ensureDatabase()
-  console.log('[bank-sql]', sql)
-  return pool.query(sql)
+async function seedDatabase() {
+  for (const u of seedUsers) {
+    await pool.query(
+      `INSERT INTO users (id, username, password, role, full_name, nic, email)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       ON CONFLICT (id) DO NOTHING`,
+      [u.id, u.username, await hashPassword(u.password), u.role, u.full_name, u.nic, u.email]
+    )
+  }
+
+  // Keep the SERIAL sequence ahead of the explicit ids we just inserted.
+  await pool.query(
+    `SELECT setval(pg_get_serial_sequence('users', 'id'), (SELECT MAX(id) FROM users))`
+  )
+
+  for (const a of seedAccounts) {
+    await pool.query(
+      `INSERT INTO accounts (user_id, account_number, account_name, balance, pin)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT (account_number) DO NOTHING`,
+      [a.user_id, a.account_number, a.account_name, a.balance, await hashPassword(a.pin)]
+    )
+  }
+
+  for (const t of seedTransactions) {
+    await pool.query(
+      `INSERT INTO transactions (from_account, to_account, amount, description, created_by)
+       VALUES ($1, $2, $3, $4, $5)
+       ON CONFLICT DO NOTHING`,
+      [t.from, t.to, t.amount, t.description, t.by]
+    )
+  }
 }
 
-export async function ensureDatabase() {
-  if (booted) return
-  await pool.query(schema)
-  await pool.query(seed)
-  booted = true
+/**
+ * Execute a query. Always use parameter placeholders ($1, $2, …) and pass
+ * values via `params` — never interpolate user input into `sql`.
+ */
+export async function runStatement(sql: string, params: unknown[] = []) {
+  await ensureDatabase()
+  return pool.query(sql, params)
+}
+
+let bootPromise: Promise<void> | null = null
+
+export function ensureDatabase() {
+  if (!bootPromise) {
+    bootPromise = (async () => {
+      await pool.query(schema)
+      await seedDatabase()
+    })().catch((err) => {
+      // Allow a later request to retry boot if this attempt failed.
+      bootPromise = null
+      throw err
+    })
+  }
+  return bootPromise
 }
 
 export function asText(value: unknown) {
@@ -91,21 +161,13 @@ export function asText(value: unknown) {
 }
 
 export function serviceFailure(reason: unknown) {
-  const issue = reason as {
-    message?: string
-    code?: string
-    detail?: string
-    stack?: string
-  }
+  // Log full details server-side only; never leak internals to the client.
+  console.error('[service-failure]', reason)
 
   return Response.json(
     {
       ok: false,
-      message: issue.message,
-      code: issue.code,
-      detail: issue.detail,
-      trace: issue.stack,
-      databaseUrl: connectionString
+      message: 'Internal server error'
     },
     { status: 500 }
   )
